@@ -185,6 +185,10 @@
   </div>
 
   <h2 class="h5 mt-4">История действий</h2>
+  <a class="btn btn-outline-secondary btn-sm mb-2"
+     th:href="@{/documents/{id}/history/export(id=${document.id})}">
+    Выгрузить историю в XLSX
+  </a>
   <ul class="list-group" th:if="${!routeHistory.empty}">
     <li class="list-group-item" th:each="item : ${routeHistory}">
       <div class="d-flex justify-content-between">

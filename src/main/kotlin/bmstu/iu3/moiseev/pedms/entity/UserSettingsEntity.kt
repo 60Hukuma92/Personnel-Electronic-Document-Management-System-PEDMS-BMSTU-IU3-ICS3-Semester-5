@@ -36,6 +36,10 @@ class UserSettingsEntity(
     @Column(name = "notif_email_enabled", nullable = false)
     var notifEmailEnabled: Boolean = false,
 
+    /** Список событий через запятую; пустое значение означает все события. */
+    @Column(name = "notif_event_types", nullable = false, length = 1000)
+    var notifEventTypes: String = "",
+
     /** Тема оформления: light, dark, auto. */
     @Column(name = "theme", nullable = false, length = 20)
     var theme: String = "light",

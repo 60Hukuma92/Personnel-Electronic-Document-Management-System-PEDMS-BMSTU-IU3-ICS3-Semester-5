@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Формирование приказов')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+  <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Документы', 'Формирование приказов'} })}"></div>
+
+  <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+  <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+  <h1 class="h3 mb-3">Формирование приказов</h1>
+
+  <section class="card mb-4">
+    <div class="card-header">Согласованные заявления без приказа</div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>ID</th><th>Номер</th><th>Название</th><th>Автор</th><th>Статус</th><th></th></tr></thead>
+        <tbody>
+        <tr th:if="${applications.empty}">
+          <td colspan="6" class="text-muted text-center py-4">Доступных заявлений нет</td>
+        </tr>
+        <tr th:each="application : ${applications}">
+          <td th:text="${application.id}"></td>
+          <td th:text="${application.number ?: 'без номера'}"></td>
+          <td>
+            <a th:href="@{/documents/{id}(id=${application.id})}" th:text="${application.title}"></a>
+          </td>
+          <td th:text="${application.author?.fullName}"></td>
+          <td><span class="badge text-bg-secondary" th:text="${application.status.title}"></span></td>
+          <td class="text-end">
+            <form th:action="@{/documents/orders/from/{id}(id=${application.id})}" method="post">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+              <button class="btn btn-sm btn-primary" type="submit">Сформировать</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-header">Пакетное формирование из XLSX/CSV</div>
+    <div class="card-body">
+      <p class="text-muted mb-2">Файл должен содержать столбец <strong>ID заявления</strong>. Каждая строка проверяется отдельно; некорректные строки пропускаются.</p>
+      <form class="row g-2" th:action="@{/documents/orders/batch}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <div class="col-md-5"><input class="form-control" type="file" name="file" accept=".xlsx,.xls,.csv" required></div>
+        <div class="col-md-4 d-flex align-items-center">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="submitToRoute" value="true" id="submitToRoute">
+            <label class="form-check-label" for="submitToRoute">Сразу отправить сформированные приказы по маршруту</label>
+          </div>
+        </div>
+        <div class="col-md-3"><button class="btn btn-primary w-100" type="submit">Загрузить и сформировать</button></div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card mb-4" th:if="${orderReport != null}">
+    <div class="card-header">Отчёт пакетной загрузки</div>
+    <div class="card-body">
+      <p>
+        Обработано строк: <strong th:text="${orderReport.totalRows}"></strong>;
+        успешно: <strong th:text="${orderReport.createdRows}"></strong>;
+        с ошибками: <strong th:text="${orderReport.failedRows}"></strong>.
+      </p>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead><tr><th>Строка</th><th>ID заявления</th><th>Заявление</th><th>ID приказа</th><th>Результат</th></tr></thead>
+          <tbody>
+          <tr th:each="row : ${orderReport.rows}">
+            <td th:text="${row.rowNumber}"></td>
+            <td th:text="${row.applicationId}"></td>
+            <td th:text="${row.applicationTitle ?: 'Не установлено'}"></td>
+            <td th:text="${row.documentId ?: '—'}"></td>
+            <td>
+              <span th:if="${row.isSuccess}" class="text-success">Успешно</span>
+              <span th:if="${!row.isSuccess}" class="text-danger" th:text="${row.error}"></span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -12,6 +12,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.PreRemove
+import jakarta.persistence.PreUpdate
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
@@ -58,4 +60,10 @@ class AuditLogEntity(
 
     @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now()
-)
+) {
+    @PreUpdate
+    @PreRemove
+    fun preventMutation() {
+        throw IllegalStateException("Записи журнала аудита нельзя изменять или удалять")
+    }
+}

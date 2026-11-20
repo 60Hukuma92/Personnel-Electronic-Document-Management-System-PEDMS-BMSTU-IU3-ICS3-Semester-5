@@ -154,7 +154,7 @@ DECLARE
         "department":         ["dept_id","org_id","parent_dept_id","manager_id","name","code","level","path","created_at","liquidated_at"],
         "position":           ["position_id","name"],
         "app_users":          ["user_id","dept_id","position_id","personnel_number","full_name","date_of_birth","inn","snils","phone","email","role","status","password_hash","created_at","last_login"],
-        "user_settings":      ["user_id","notif_web_enabled","notif_email_enabled","theme","language"],
+        "user_settings":      ["user_id","notif_web_enabled","notif_email_enabled","notif_event_types","theme","language"],
         "delegation":         ["delegation_id","from_user_id","to_user_id","date_from","date_to","created_at"],
         "doc_type":           ["type_id","code","name","category","template_json","requires_approval","requires_signature","signature_type","requires_acquaintance","retention_years","is_active"],
         "document":           ["doc_id","type_id","author_id","base_doc_id","number","title","status","content_json","content_url","period_start","period_end","created_at","updated_at","vacation_days","is_signed","is_archived"],
@@ -384,6 +384,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
     user_id              INTEGER PRIMARY KEY REFERENCES app_users (user_id) ON DELETE CASCADE,
     notif_web_enabled    BOOLEAN NOT NULL DEFAULT TRUE,
     notif_email_enabled  BOOLEAN NOT NULL DEFAULT FALSE,
+    notif_event_types    VARCHAR(1000) NOT NULL DEFAULT '',
     theme                VARCHAR(20) NOT NULL DEFAULT 'light',
     language             VARCHAR(10) NOT NULL DEFAULT 'ru',
     CONSTRAINT ck_user_settings_theme    CHECK (theme IN ('light', 'dark', 'auto')),
@@ -1273,11 +1274,11 @@ DECLARE
     v_count INTEGER;
 BEGIN
     WITH archived AS (
-        UPDATE document
+        UPDATE document d
         SET status     = 'ARCHIVED',
             updated_at = now()
-        WHERE status = 'SIGNED'
-          AND created_at < p_before
+        WHERE d.status = 'SIGNED'
+          AND d.updated_at < p_before
         RETURNING doc_id
     )
     SELECT COUNT(*) INTO v_count FROM archived;

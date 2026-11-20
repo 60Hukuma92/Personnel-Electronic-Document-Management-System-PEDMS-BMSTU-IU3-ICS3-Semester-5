@@ -96,7 +96,7 @@ class SchemaVerifier(private val jdbcTemplate: JdbcTemplate) : ApplicationRunner
 
         /** Домены — средства защиты от ошибок ручного ввода. */
         val EXPECTED_DOMAINS = listOf(
-            "d_email", "d_inn", "d_snils", "d_phone", "d_personnel_number", "d_full_name"
+            "d_email", "d_inn", "d_snils", "d_personnel_number", "d_full_name", "d_doc_code"
         )
 
         /** Материализованные представления — итоговые и частные итоги (b, c). */

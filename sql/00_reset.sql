@@ -23,6 +23,7 @@ DROP MATERIALIZED VIEW IF EXISTS mv_stat_document_totals   CASCADE;
 DROP MATERIALIZED VIEW IF EXISTS mv_stat_department_totals CASCADE;
 
 DROP FUNCTION IF EXISTS f_forecast_vacation_exhaustion(INTEGER) CASCADE;
+DROP FUNCTION IF EXISTS f_lower_ru(TEXT)                CASCADE;
 DROP FUNCTION IF EXISTS f_best_worst()                   CASCADE;
 DROP FUNCTION IF EXISTS f_archive_signed_documents(DATE) CASCADE;
 DROP FUNCTION IF EXISTS f_escalate_overdue_steps()       CASCADE;
@@ -52,10 +53,18 @@ DROP TABLE IF EXISTS position           CASCADE;
 DROP TABLE IF EXISTS department         CASCADE;
 DROP TABLE IF EXISTS organization       CASCADE;
 
+-- Таблицы предыдущей версии схемы (создавались Hibernate автоматически).
+-- В актуальной модели используются department / organization, поэтому
+-- старые таблицы удаляются, чтобы в базе не осталось дублирующих сущностей.
+DROP TABLE IF EXISTS departments        CASCADE;
+DROP TABLE IF EXISTS organizations      CASCADE;
+
 -- Домены
 DROP DOMAIN IF EXISTS d_email;
 DROP DOMAIN IF EXISTS d_inn;
 DROP DOMAIN IF EXISTS d_snils;
-DROP DOMAIN IF EXISTS d_phone;
 DROP DOMAIN IF EXISTS d_personnel_number;
 DROP DOMAIN IF EXISTS d_full_name;
+DROP DOMAIN IF EXISTS d_doc_code;
+-- Домен предыдущей версии скрипта: маска телефона вынесена в CHECK-условие
+DROP DOMAIN IF EXISTS d_phone;

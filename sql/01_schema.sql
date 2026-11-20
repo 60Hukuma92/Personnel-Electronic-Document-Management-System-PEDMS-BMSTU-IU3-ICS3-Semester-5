@@ -25,6 +25,88 @@ SET client_encoding = 'UTF8';
 SET search_path TO public;
 
 -- ---------------------------------------------------------------------
+-- 0. ПРОВЕРКА СООТВЕТСТВИЯ СХЕМЫ И САМОВОССТАНОВЛЕНИЕ
+--
+-- Схема полностью определяется этим скриптом. Если какая-либо из таблиц
+-- уже существует, но её состав столбцов отличается от ожидаемого
+-- (например, таблица создана автоматически Hibernate на раннем этапе
+-- разработки), такая таблица не может быть использована: в ней нет
+-- обязательных полей, а часть полей имеет неверный тип.
+--
+-- В этом случае все таблицы схемы пересоздаются. Таблицы с корректной
+-- структурой и данными не затрагиваются.
+--
+-- После этого выполните:
+--   sql/01_schema.sql
+--   sql/02_objects.sql
+-- ---------------------------------------------------------------------
+DO $$
+DECLARE
+    v_expected JSONB := '{
+        "organization":       ["org_id","name","inn","kpp","legal_address","is_active"],
+        "department":         ["dept_id","org_id","parent_dept_id","manager_id","name","code","level","path","created_at","liquidated_at"],
+        "position":           ["position_id","name"],
+        "app_users":          ["user_id","dept_id","position_id","personnel_number","full_name","date_of_birth","inn","snils","phone","email","role","status","password_hash","created_at","last_login"],
+        "user_settings":      ["user_id","notif_web_enabled","notif_email_enabled","theme","language"],
+        "delegation":         ["delegation_id","from_user_id","to_user_id","date_from","date_to","created_at"],
+        "doc_type":           ["type_id","code","name","category","template_json","requires_approval","requires_signature","signature_type","requires_acquaintance","retention_years","is_active"],
+        "document":           ["doc_id","type_id","author_id","base_doc_id","number","title","status","content_json","content_url","period_start","period_end","created_at","updated_at","vacation_days","is_signed","is_archived"],
+        "route_rule":         ["rule_id","type_id","dept_id","initiator_position_id","approver_position_id","approver_dept_id","step_order","action","deadline_days"],
+        "route_step":         ["step_id","doc_id","user_id","delegated_from","step_order","action","status","comment","decided_at","deadline","is_parallel","signature_data"],
+        "attachment":         ["attach_id","doc_id","uploaded_by","file_name","file_path","file_size","file_type","uploaded_at"],
+        "acquaintance_sheet": ["sheet_id","doc_id","created_by","audience_type","audience_ref","deadline","status","created_at","total_expected","acknowledged_count"],
+        "acquaintance_mark":  ["mark_id","sheet_id","user_id","status","read_at","reminder_sent_at","signature_data","is_acknowledged"],
+        "notification":       ["notif_id","user_id","doc_id","event_type","channel","body","created_at","read_at"],
+        "audit_log":          ["audit_id","doc_id","user_id","action","comment","changed_fields","created_at"]
+    }'::jsonb;
+    v_table     TEXT;
+    v_actual    TEXT[];
+    v_planned   TEXT[];
+    v_actual_s  TEXT;
+    v_planned_s TEXT;
+    v_rebuild   BOOLEAN := FALSE;
+BEGIN
+    FOR v_table IN SELECT jsonb_object_keys(v_expected) ORDER BY 1 LOOP
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = v_table AND c.relkind = 'r'
+        ) THEN
+            CONTINUE;   -- таблицы ещё нет — она будет создана ниже
+        END IF;
+
+        SELECT array_agg(a.attname ORDER BY a.attname)
+        INTO v_actual
+        FROM pg_attribute a
+        JOIN pg_class c ON c.oid = a.attrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public' AND c.relname = v_table
+          AND a.attnum > 0 AND NOT a.attisdropped;
+
+        v_planned := ARRAY(
+            SELECT jsonb_array_elements_text(v_expected -> v_table) ORDER BY 1
+        );
+
+        SELECT string_agg(x, ',' ORDER BY x) INTO v_actual_s  FROM unnest(v_actual)  AS x;
+        SELECT string_agg(x, ',' ORDER BY x) INTO v_planned_s FROM unnest(v_planned) AS x;
+
+        IF v_actual_s IS DISTINCT FROM v_planned_s THEN
+            RAISE NOTICE 'Таблица % имеет структуру, отличную от ожидаемой — схема будет пересоздана.', v_table;
+            v_rebuild := TRUE;
+        END IF;
+    END LOOP;
+
+    IF v_rebuild THEN
+        RAISE NOTICE 'Обнаружена несовпадающая структура таблиц. Все таблицы схемы пересоздаются, данные в них будут удалены.';
+        DROP TABLE IF EXISTS
+            audit_log, notification, acquaintance_mark, acquaintance_sheet, attachment,
+            route_step, route_rule, document, doc_type, delegation, user_settings,
+            app_users, position, department, organization
+            CASCADE;
+    END IF;
+END $$;
+
+-- ---------------------------------------------------------------------
 -- 1. ДОМЕНЫ — защита от ошибок ручного ввода
 --    (требование «условия на вводимые данные, маски, домены»)
 -- ---------------------------------------------------------------------
@@ -61,19 +143,18 @@ BEGIN
     END IF;
 END $$;
 
--- Телефон — маска +7 XXX XXX-XX-XX.
---
--- ВНИМАНИЕ: для столбца phone используется обычное CHECK-условие, а не домен.
--- Домен проверяется PostgreSQL при приведении значения к типу, то есть
--- ДО срабатывания BEFORE-триггера, поэтому триггер не смог бы привести
--- номер к маске. CHECK-условие проверяется уже после триггера —
--- это позволяет нормализовать ввод на уровне БД и отклонять
--- неприводимые значения. Остальные реквизиты оформлены доменами.
+-- Телефон хранится в столбце app_users.phone с обычным CHECK-условием
+-- (маска +7 XXX XXX-XX-XX), а не доменом: домен проверяется при приведении
+-- значения к типу, то есть ДО срабатывания BEFORE-триггера, и нормализация
+-- номера на уровне БД была бы невозможна. Подробнее — в комментарии
+-- к столбцу app_users.phone.
+
+-- Код вида документа — латинские буквы, цифры и подчёркивание
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'd_phone') THEN
-        CREATE DOMAIN d_phone AS VARCHAR(20)
-            CONSTRAINT d_phone_mask CHECK (VALUE ~ '^\+7 [0-9]{3} [0-9]{3}-[0-9]{2}-[0-9]{2}$');
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'd_doc_code') THEN
+        CREATE DOMAIN d_doc_code AS VARCHAR(20)
+            CONSTRAINT d_doc_code_pattern CHECK (VALUE ~ '^[A-Z0-9_]{2,20}$');
     END IF;
 END $$;
 
@@ -86,6 +167,11 @@ BEGIN
                 CHECK (VALUE ~ '^[А-ЯЁA-Z0-9]{1,8}(-[0-9А-ЯЁA-Z]{1,8})?$');
     END IF;
 END $$;
+
+-- Домен d_phone больше не используется: маска телефона обеспечивается
+-- CHECK-условием столбца app_users.phone (см. комментарий выше).
+-- Удаляем его, если он остался от предыдущей версии скрипта.
+DROP DOMAIN IF EXISTS d_phone;
 
 -- ФИО — не пусто, без служебных символов
 DO $$
@@ -232,7 +318,7 @@ END $$;
 
 CREATE TABLE IF NOT EXISTS doc_type (
     type_id                INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    code                   VARCHAR(20)  NOT NULL,
+    code                   d_doc_code  NOT NULL,
     name                   VARCHAR(200) NOT NULL,
     category               VARCHAR(50)  NOT NULL,
     template_json          JSONB        NOT NULL DEFAULT '{}'::jsonb,

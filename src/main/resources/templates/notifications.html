@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Уведомления')}">
+    <title>Уведомления — ИС КЭДО</title>
+</head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+    <div th:replace="~{fragments/layout :: breadcrumbs(${'Уведомления'})}"></div>
+
+    <h1 class="h3 mb-4">Уведомления</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <ul class="list-group list-group-flush" th:if="${not #lists.isEmpty(notifications)}">
+                <li class="list-group-item" th:each="n : ${notifications}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge text-bg-secondary me-2" th:text="${n.eventType.title}">Событие</span>
+                            <span th:text="${n.body}">Текст уведомления</span>
+                            <small class="text-muted d-block mt-1"
+                                   th:text="${#temporals.format(n.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
+                        </div>
+                        <form th:if="${n.isUnread}" th:action="@{'/notifications/' + ${n.id} + '/read'}" method="post">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Прочитано</button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+            <p class="text-muted mb-0" th:if="${#lists.isEmpty(notifications)}">
+                Уведомлений пока нет.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

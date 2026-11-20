@@ -41,3 +41,6 @@ out/
 
 # Secret Data
 src/main/resources/application.properties
+
+# Uploaded document attachments
+/uploads/

@@ -36,6 +36,7 @@ class AcquaintanceServiceTests {
     private lateinit var positions: PositionRepository
     private lateinit var audit: AuditLogRepository
     private lateinit var current: CurrentUserService
+    private lateinit var notifications: NotificationService
     private lateinit var service: AcquaintanceService
     private lateinit var hr: AppUserEntity
     private lateinit var document: DocumentEntity
@@ -50,6 +51,7 @@ class AcquaintanceServiceTests {
         positions = mock(PositionRepository::class.java)
         audit = mock(AuditLogRepository::class.java)
         current = mock(CurrentUserService::class.java)
+        notifications = mock(NotificationService::class.java)
         hr = AppUserEntity(
             id = 1, fullName = "Кадровик", email = "hr@test",
             role = UserRole.HR, status = UserStatus.ACTIVE
@@ -68,7 +70,7 @@ class AcquaintanceServiceTests {
         `when`(sheets.save(any(AcquaintanceSheetEntity::class.java))).thenAnswer { it.arguments[0] }
         `when`(marks.save(any(AcquaintanceMarkEntity::class.java))).thenAnswer { it.arguments[0] }
         service = AcquaintanceService(
-            sheets, marks, documents, users, departments, positions, audit, current, SignatureService()
+            sheets, marks, documents, users, departments, positions, audit, current, SignatureService(), notifications
         )
     }
 

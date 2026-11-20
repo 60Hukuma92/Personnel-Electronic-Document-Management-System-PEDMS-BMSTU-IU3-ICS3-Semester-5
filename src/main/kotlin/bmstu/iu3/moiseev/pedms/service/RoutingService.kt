@@ -34,7 +34,8 @@ class RoutingService(
     private val routeStepRepository: RouteStepRepository,
     private val appUserRepository: AppUserRepository,
     private val auditLogRepository: AuditLogRepository,
-    private val currentUserService: CurrentUserService
+    private val currentUserService: CurrentUserService,
+    private val notificationService: NotificationService
 ) {
 
     fun findRoute(documentId: Int): List<RouteStepEntity> =
@@ -132,6 +133,14 @@ class RoutingService(
         document.status = DocStatus.IN_APPROVAL
         document.updatedAt = now
         documentRepository.save(document)
+        finalRoute.firstOrNull()?.user?.let {
+            notificationService.notify(
+                it,
+                bmstu.iu3.moiseev.pedms.domain.NotificationEvent.DOCUMENT_ARRIVED,
+                document,
+                "Документ «${document.title}» поступил на согласование"
+            )
+        }
         audit(document, AuditAction.SUBMITTED, "Документ отправлен на согласование")
         return document
     }
@@ -162,6 +171,15 @@ class RoutingService(
         document.status = DocStatus.REWORK
         document.updatedAt = now
         documentRepository.save(document)
+        document.author?.let {
+            notificationService.notify(
+                it,
+                bmstu.iu3.moiseev.pedms.domain.NotificationEvent.DOCUMENT_RETURNED,
+                document,
+                "Документ «${document.title}» возвращён на доработку"
+            )
+        }
+        notifyComment(document, comment)
         audit(document, AuditAction.RETURNED, comment.trim())
         return document
     }
@@ -220,6 +238,15 @@ class RoutingService(
             document.status = DocStatus.REJECTED
             document.updatedAt = now
             documentRepository.save(document)
+            document.author?.let {
+                notificationService.notify(
+                    it,
+                    bmstu.iu3.moiseev.pedms.domain.NotificationEvent.DOCUMENT_REJECTED,
+                    document,
+                    "Документ «${document.title}» отклонён"
+                )
+            }
+            notifyComment(document, comment)
             audit(document, AuditAction.REJECTED, comment?.trim())
             return document
         }
@@ -243,13 +270,51 @@ class RoutingService(
             }
             document.updatedAt = now
             documentRepository.save(document)
+            document.author?.let {
+                notificationService.notify(
+                    it,
+                    if (document.status == DocStatus.SIGNED) {
+                        bmstu.iu3.moiseev.pedms.domain.NotificationEvent.DOCUMENT_SIGNED
+                    } else {
+                        bmstu.iu3.moiseev.pedms.domain.NotificationEvent.DOCUMENT_APPROVED
+                    },
+                    document,
+                    if (document.status == DocStatus.SIGNED) {
+                        "Документ «${document.title}» подписан"
+                    } else {
+                        "Документ «${document.title}» согласован"
+                    }
+                )
+            }
+            next?.user?.let {
+                notificationService.notify(
+                    it,
+                    bmstu.iu3.moiseev.pedms.domain.NotificationEvent.DOCUMENT_ARRIVED,
+                    document,
+                    "Документ «${document.title}» поступил на согласование"
+                )
+            }
         }
+        notifyComment(document, comment)
         audit(
             document,
             if (document.status == DocStatus.SIGNED) AuditAction.SIGNED else AuditAction.APPROVED,
             comment?.trim()
         )
         return document
+    }
+
+    private fun notifyComment(document: DocumentEntity, comment: String?) {
+        if (!comment.isNullOrBlank()) {
+            document.author?.let {
+                notificationService.notify(
+                    it,
+                    bmstu.iu3.moiseev.pedms.domain.NotificationEvent.COMMENT_ADDED,
+                    document,
+                    "К документу «${document.title}» добавлен комментарий"
+                )
+            }
+        }
     }
 
     private fun requireCurrentStep(document: DocumentEntity): RouteStepEntity {

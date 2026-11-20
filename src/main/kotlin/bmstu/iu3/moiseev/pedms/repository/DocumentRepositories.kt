@@ -117,6 +117,8 @@ interface RouteStepRepository : JpaRepository<RouteStepEntity, Int> {
 
     fun findAllByDocumentIdOrderByStepOrderAsc(docId: Int): List<RouteStepEntity>
 
+    fun deleteAllByDocumentId(docId: Int)
+
     fun findAllByDocumentIdAndUserIdOrderByStepOrderAsc(docId: Int, userId: Int): List<RouteStepEntity>
 
     @Query(

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Создание листа ознакомления')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+    <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Ознакомление', 'Создание листа'} })}"></div>
+    <h1>Создание листа ознакомления</h1>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <form th:action="@{/acquaintance/preview}" th:object="${form}" method="post" class="card card-body mb-4">
+        <div class="mb-3">
+            <label class="form-label">Подписанный ЛНА</label>
+            <select class="form-select" th:field="*{documentId}" required>
+                <option value="">Выберите документ</option>
+                <option th:each="document : ${documents}" th:value="${document.id}"
+                        th:text="${(document.number ?: 'без номера') + ' — ' + document.title}"></option>
+            </select>
+            <div class="form-text">Лист нельзя создать для неподписанного документа.</div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Аудитория</label>
+                <select class="form-select" th:field="*{audienceType}">
+                    <option th:each="type : ${audienceTypes}" th:value="${type}" th:text="${type.title}"></option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Срок ознакомления</label>
+                <input class="form-control" type="date" th:field="*{deadline}" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Подразделение или должность</label>
+            <input class="form-control" type="text" th:field="*{audienceRef}"
+                   placeholder="Введите ID выбранного подразделения/должности">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Список сотрудников</label>
+            <input class="form-control" type="text" th:field="*{employeeIds}"
+                   placeholder="ID сотрудников через запятую">
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" type="submit">Предпросмотр состава</button>
+            <button class="btn btn-primary" type="submit" formaction="/acquaintance">Создать лист</button>
+        </div>
+    </form>
+    <div class="card" th:if="${preview}">
+        <div class="card-body">
+            <h2 class="h5">Предпросмотр</h2>
+            <p>Участников: <strong th:text="${preview.total}">0</strong></p>
+            <ul class="mb-0"><li th:each="user : ${preview.users}" th:text="${user.fullName + ' — ' + user.email}"></li></ul>
+        </div>
+    </div>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

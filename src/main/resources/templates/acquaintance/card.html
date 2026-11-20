@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Лист ознакомления')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+    <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Ознакомление', 'Лист'} })}"></div>
+    <div th:replace="~{fragments/messages :: messages}"></div>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 th:text="${sheet.document.title}">Лист ознакомления</h1>
+        <a class="btn btn-outline-secondary" th:href="@{/acquaintance/{id}/pending.csv(id=${sheet.id})}">Выгрузить не ознакомившихся</a>
+    </div>
+    <p class="text-muted">Срок: <span th:text="${sheet.deadline ?: 'не задан'}">—</span></p>
+    <div class="progress mb-3" role="progressbar">
+        <div class="progress-bar" th:style="'width:' + ${summary.percent} + '%'" th:text="${summary.percent + '%'}">0%</div>
+    </div>
+    <p th:text="${summary.acknowledged + ' из ' + summary.total + ' ознакомились; осталось: ' + summary.pending}"></p>
+    <table class="table table-sm">
+        <thead><tr><th>Сотрудник</th><th>Статус</th><th>Дата</th></tr></thead>
+        <tbody><tr th:each="mark : ${marks}">
+            <td th:text="${mark.user.fullName}">Сотрудник</td>
+            <td th:text="${mark.status.title}">Не ознакомлен</td>
+            <td th:text="${mark.readAt ?: '—'}">—</td>
+        </tr></tbody>
+    </table>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ознакомление')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+    <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Ознакомление'} })}"></div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Листы ознакомления</h1>
+        <a class="btn btn-primary" th:if="${currentUser != null and (currentUser.role.name() == 'HR' or currentUser.role.name() == 'ADMIN')}"
+           th:href="@{/acquaintance/create}">Создать лист</a>
+    </div>
+    <div th:replace="~{fragments/messages :: messages}"></div>
+    <div class="alert alert-info" th:if="${#lists.isEmpty(sheets)}">Листов ознакомления пока нет.</div>
+    <div class="table-responsive" th:unless="${#lists.isEmpty(sheets)}">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Документ</th><th>Аудитория</th><th>Срок</th><th>Прогресс</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="sheet : ${sheets}">
+                <td th:text="${sheet.document.title}">ЛНА</td>
+                <td th:text="${sheet.audienceType.title}">Вся организация</td>
+                <td th:text="${sheet.deadline ?: '—'}">—</td>
+                <td th:text="${sheet.acknowledgedCount + ' / ' + sheet.totalExpected + ' (' + sheet.percentComplete + '%)'}">0 / 0</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/acquaintance/{id}(id=${sheet.id})}">Открыть</a>
+                    <a class="btn btn-sm btn-primary" th:if="${currentUser != null and sheet.document != null and sheet.status.name() == 'ACTIVE'}"
+                       th:href="@{/acquaintance/{id}/read(id=${sheet.id})}">Ознакомиться</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

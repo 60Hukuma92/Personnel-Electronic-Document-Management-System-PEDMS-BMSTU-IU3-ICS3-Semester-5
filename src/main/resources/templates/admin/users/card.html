@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Карточка пользователя')}">
+    <title>Карточка пользователя — ИС КЭДО</title>
+</head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Мой кабинет</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/admin/users}">Учётные записи</a></li>
+                <li class="breadcrumb-item active" th:text="${user.fullName}">Пользователь</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1" th:text="${user.fullName}">ФИО</h1>
+            <p class="text-muted mb-0" th:text="${user.email}">email</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{'/admin/users/' + ${user.id} + '/edit'}">
+                <i class="bi bi-pencil me-1"></i>Изменить сведения
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/users}">
+                <i class="bi bi-arrow-left me-1"></i>К реестру
+            </a>
+        </div>
+    </div>
+
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${successMessage}">
+        <i class="bi bi-check-circle me-1"></i><span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- Временный пароль показывается один раз -->
+    <div class="alert alert-warning" role="alert" th:if="${temporaryPassword}">
+        <h2 class="h6 mb-1"><i class="bi bi-key me-1"></i>Временный пароль</h2>
+        <p class="mb-1">Логин: <code th:text="${temporaryPasswordLogin}">login</code></p>
+        <p class="mb-1">Пароль: <code th:text="${temporaryPassword}">password</code></p>
+        <p class="mb-0 small">Передайте пароль сотруднику: после первого входа рекомендуется сменить его в настройках.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h2 class="h6 mb-0">Сведения о пользователе (FR190)</h2>
+                    <span class="badge fs-6"
+                          th:classappend="${user.status.name() == 'ACTIVE'} ? 'text-bg-success' :
+                                   (${user.status.name() == 'BLOCKED'} ? 'text-bg-warning' :
+                                   (${user.status.name() == 'DELETED'} ? 'text-bg-danger' : 'text-bg-secondary'))"
+                          th:text="${user.status.title}">Статус</span>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted fw-normal">Фамилия, имя, отчество</dt>
+                        <dd class="col-sm-8" th:text="${user.fullName}">ФИО</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Электронная почта (логин)</dt>
+                        <dd class="col-sm-8" th:text="${user.email}">email</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Дата рождения</dt>
+                        <dd class="col-sm-8" th:text="${user.dateOfBirth != null
+                            ? #temporals.format(user.dateOfBirth, 'dd.MM.yyyy') : '—'}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">ИНН</dt>
+                        <dd class="col-sm-8" th:text="${user.inn ?: '—'}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">СНИЛС</dt>
+                        <dd class="col-sm-8" th:text="${user.snils ?: '—'}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Телефон</dt>
+                        <dd class="col-sm-8" th:text="${user.phone ?: '—'}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Табельный номер</dt>
+                        <dd class="col-sm-8" th:text="${user.personnelNumber ?: '—'}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Подразделение</dt>
+                        <dd class="col-sm-8" th:text="${user.department?.name ?: '—'}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Должность</dt>
+                        <dd class="col-sm-8" th:text="${user.position?.name ?: '—'}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Роль</dt>
+                        <dd class="col-sm-8" th:text="${user.role.title}">Роль</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Статус учётной записи</dt>
+                        <dd class="col-sm-8" th:text="${user.status.title}">Статус</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Учётная запись создана</dt>
+                        <dd class="col-sm-8" th:text="${#temporals.format(user.createdAt, 'dd.MM.yyyy HH:mm')}">—</dd>
+
+                        <dt class="col-sm-4 text-muted fw-normal">Последний вход</dt>
+                        <dd class="col-sm-8" th:text="${user.lastLogin != null
+                            ? #temporals.format(user.lastLogin, 'dd.MM.yyyy HH:mm') : 'не выполнялся'}">—</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Действия администратора -->
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h2 class="h6 mb-0">Действия (FR020)</h2></div>
+                <div class="card-body d-grid gap-2">
+
+                    <form method="post" th:action="@{'/admin/users/' + ${user.id} + '/activate'}"
+                          th:if="${user.status.name() != 'ACTIVE' and user.status.name() != 'DELETED'}">
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-person-check me-1"></i>Активировать
+                        </button>
+                    </form>
+
+                    <form method="post" th:action="@{'/admin/users/' + ${user.id} + '/block'}"
+                          th:if="${user.status.name() == 'ACTIVE'}">
+                        <button type="submit" class="btn btn-warning btn-sm w-100">
+                            <i class="bi bi-slash-circle me-1"></i>Заблокировать
+                        </button>
+                    </form>
+
+                    <form method="post" th:action="@{'/admin/users/' + ${user.id} + '/unblock'}"
+                          th:if="${user.status.name() == 'BLOCKED'}">
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-unlock me-1"></i>Разблокировать
+                        </button>
+                    </form>
+
+                    <form method="post" th:action="@{'/admin/users/' + ${user.id} + '/reset-password'}"
+                          data-confirm="Сбросить пароль? Сотрудник получит новый временный пароль."
+                          th:if="${user.status.name() != 'DELETED'}">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="bi bi-key me-1"></i>Сбросить пароль
+                        </button>
+                    </form>
+
+                    <form method="post" th:action="@{'/admin/users/' + ${user.id} + '/delete'}"
+                          data-confirm="Удалить учётную запись с обезличиванием персональных данных? Действие необратимо."
+                          th:if="${user.status.name() != 'DELETED'}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="bi bi-trash me-1"></i>Удалить с обезличиванием
+                        </button>
+                    </form>
+
+                    <p class="small text-muted mb-0">
+                        При удалении ФИО, ИНН, СНИЛС, телефон, дата рождения, табельный номер и адрес
+                        электронной почты заменяются обезличенными значениями, а роль снижается
+                        до «Сотрудник». Связанные документы и этапы маршрута сохраняются.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

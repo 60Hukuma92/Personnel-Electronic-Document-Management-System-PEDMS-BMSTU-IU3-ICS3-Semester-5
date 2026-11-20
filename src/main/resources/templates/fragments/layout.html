@@ -96,5 +96,12 @@
     </nav>
 </div>
 
+<!-- Клиентские скрипты: библиотека Bootstrap нужна для выпадающего меню,
+     сворачиваемого меню на узких экранах и подтверждения опасных действий. -->
+<th:block th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/pedms.js}"></script>
+</th:block>
+
 </body>
 </html>

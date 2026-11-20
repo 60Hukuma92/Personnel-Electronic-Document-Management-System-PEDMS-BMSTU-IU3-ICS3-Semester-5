@@ -23,6 +23,24 @@ interface AppUserRepository : JpaRepository<AppUserEntity, Int> {
 
     fun existsByEmailIgnoreCase(email: String): Boolean
 
+    fun existsByPersonnelNumber(personnelNumber: String): Boolean
+
+    fun existsByInn(inn: String): Boolean
+
+    fun existsBySnils(snils: String): Boolean
+
+    fun existsByPhone(phone: String): Boolean
+
+    fun findByInn(inn: String): AppUserEntity?
+
+    fun findBySnils(snils: String): AppUserEntity?
+
+    fun findByPhone(phone: String): AppUserEntity?
+
+    fun countByStatus(status: UserStatus): Long
+
+    fun countByRole(role: UserRole): Long
+
     fun findAllByOrderByFullNameAsc(): List<AppUserEntity>
 
     fun findAllByStatusOrderByFullNameAsc(status: UserStatus): List<AppUserEntity>

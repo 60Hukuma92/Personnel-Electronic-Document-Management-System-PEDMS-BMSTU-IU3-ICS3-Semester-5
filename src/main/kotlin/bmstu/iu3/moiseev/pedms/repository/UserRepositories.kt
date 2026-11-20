@@ -49,6 +49,16 @@ interface AppUserRepository : JpaRepository<AppUserEntity, Int> {
 
     fun findAllByDepartmentIdOrderByFullNameAsc(deptId: Int): List<AppUserEntity>
 
+    fun findAllByDepartmentIdAndStatusOrderByFullNameAsc(
+        deptId: Int,
+        status: UserStatus
+    ): List<AppUserEntity>
+
+    fun findAllByPositionIdAndStatusOrderByFullNameAsc(
+        positionId: Int,
+        status: UserStatus
+    ): List<AppUserEntity>
+
     /**
      * Сотрудники подразделения с указанной должностью.
      * Используется при построении маршрута согласования по правилам.

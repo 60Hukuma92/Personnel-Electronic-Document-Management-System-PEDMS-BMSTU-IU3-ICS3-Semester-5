@@ -1,13 +1,16 @@
 package bmstu.iu3.moiseev.pedms.service
 
 import bmstu.iu3.moiseev.pedms.domain.DocStatus
+import bmstu.iu3.moiseev.pedms.domain.AuditAction
 import bmstu.iu3.moiseev.pedms.dto.DocumentForm
 import bmstu.iu3.moiseev.pedms.dto.DocumentValidationException
 import bmstu.iu3.moiseev.pedms.entity.AttachmentEntity
 import bmstu.iu3.moiseev.pedms.entity.DocumentEntity
+import bmstu.iu3.moiseev.pedms.entity.AuditLogEntity
 import bmstu.iu3.moiseev.pedms.repository.AttachmentRepository
 import bmstu.iu3.moiseev.pedms.repository.DocTypeRepository
 import bmstu.iu3.moiseev.pedms.repository.DocumentRepository
+import bmstu.iu3.moiseev.pedms.repository.AuditLogRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -23,7 +26,8 @@ class DocumentService(
     private val documentRepository: DocumentRepository,
     private val docTypeRepository: DocTypeRepository,
     private val attachmentRepository: AttachmentRepository,
-    private val currentUserService: CurrentUserService
+    private val currentUserService: CurrentUserService,
+    private val auditLogRepository: AuditLogRepository? = null
 ) {
     fun findActiveTypes() = docTypeRepository.findAllByIsActiveTrueOrderByNameAsc()
 
@@ -57,7 +61,7 @@ class DocumentService(
         val (type, content, periodStart, periodEnd) = validateForm(form)
         val title = form.title.trim()
 
-        return documentRepository.save(
+        val saved = documentRepository.save(
             DocumentEntity(
                 type = type,
                 author = user,
@@ -70,6 +74,8 @@ class DocumentService(
                 updatedAt = LocalDateTime.now()
             )
         )
+        audit(saved, AuditAction.CREATED, "Создан черновик документа", mapOf("status" to DocStatus.DRAFT.name))
+        return saved
     }
 
     @Transactional
@@ -82,7 +88,13 @@ class DocumentService(
         document.periodStart = periodStart
         document.periodEnd = periodEnd
         document.updatedAt = LocalDateTime.now()
-        return documentRepository.save(document)
+        val saved = documentRepository.save(document)
+        audit(saved, AuditAction.DRAFT_SAVED, "Сохранены изменения черновика", mapOf(
+            "title" to saved.title,
+            "typeId" to saved.type?.id,
+            "contentJson" to saved.contentJson
+        ))
+        return saved
     }
 
     @Transactional
@@ -91,7 +103,9 @@ class DocumentService(
         if (document.status == DocStatus.IN_APPROVAL) {
             document.status = DocStatus.RECALLED
             document.updatedAt = LocalDateTime.now()
-            return documentRepository.save(document)
+            val saved = documentRepository.save(document)
+            audit(saved, AuditAction.RECALLED, "Документ отозван с согласования", mapOf("status" to "IN_APPROVAL -> RECALLED"))
+            return saved
         }
         throw IllegalStateException("Отозвать можно только документ, находящийся на согласовании")
     }
@@ -120,6 +134,11 @@ class DocumentService(
         )
         document.updatedAt = LocalDateTime.now()
         documentRepository.save(document)
+        audit(document, AuditAction.DRAFT_SAVED, "Добавлено вложение «${attachment.fileName}»", mapOf(
+            "attachmentId" to attachment.id,
+            "fileName" to attachment.fileName,
+            "fileSize" to attachment.fileSize
+        ))
         return attachment
     }
 
@@ -142,6 +161,24 @@ class DocumentService(
             throw org.springframework.security.access.AccessDeniedException("Документ доступен только автору")
         }
         return document
+    }
+
+    private fun audit(
+        document: DocumentEntity,
+        action: AuditAction,
+        comment: String,
+        changedFields: Map<String, Any?>
+    ) {
+        auditLogRepository?.save(
+            AuditLogEntity(
+                document = document,
+                user = currentUserService.requireCurrentUser(),
+                action = action,
+                comment = comment,
+                changedFields = changedFields,
+                createdAt = LocalDateTime.now()
+            )
+        )
     }
 
     private fun validateAttachment(file: MultipartFile, document: DocumentEntity) {

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Мой кабинет')}">
+    <title>Мой кабинет — ИС КЭДО</title>
+</head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1" th:text="'Мой кабинет — ' + ${user.fullName}">Мой кабинет</h1>
+            <p class="text-muted mb-0"
+               th:text="${user.position?.name ?: '—'} + ' · ' + ${user.department?.name ?: '—'}">
+            </p>
+        </div>
+        <span class="badge text-bg-secondary fs-6" th:text="${user.role.title}">Роль</span>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><h2 class="h6 mb-0">Быстрые действия</h2></div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary btn-sm" th:href="@{/documents/create}">
+                    <i class="bi bi-file-earmark-plus me-1"></i>Создать заявление на отпуск
+                </a>
+                <a class="btn btn-outline-primary btn-sm" th:href="@{/documents/create}">
+                    <i class="bi bi-file-earmark me-1"></i>Создать документ
+                </a>
+                <a class="btn btn-outline-secondary btn-sm" th:href="@{/documents}">
+                    <i class="bi bi-folder2-open me-1"></i>Мои документы
+                </a>
+                <a class="btn btn-outline-secondary btn-sm" th:href="@{/acquaintance}">
+                    <i class="bi bi-journal-check me-1"></i>Требуют ознакомления
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Показатели -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 text-muted">Мои документы</h3>
+                    <p class="display-6 mb-0" th:text="${summary.myDocuments}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 text-muted">Ожидают моего решения</h3>
+                    <p class="display-6 mb-0" th:text="${summary.awaitingMe}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 text-muted">Требуют ознакомления</h3>
+                    <p class="display-6 mb-0" th:text="${summary.acquaintanceRequired}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 text-muted">Непрочитанные уведомления</h3>
+                    <p class="display-6 mb-0" th:text="${summary.unreadNotifications}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h2 class="h6 mb-0">Последние уведомления</h2>
+            <a class="btn btn-sm btn-outline-secondary" th:href="@{/notifications}">Все уведомления</a>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush" th:if="${not #lists.isEmpty(notifications)}">
+                <li class="list-group-item d-flex justify-content-between align-items-start"
+                    th:each="n : ${notifications}">
+                    <div>
+                        <span th:text="${n.body}">Текст уведомления</span>
+                        <small class="text-muted d-block"
+                               th:text="${#temporals.format(n.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
+                    </div>
+                    <span class="badge text-bg-primary ms-2" th:if="${n.isUnread}">новое</span>
+                </li>
+            </ul>
+            <p class="text-muted mb-0" th:if="${#lists.isEmpty(notifications)}">
+                Уведомлений пока нет.
+            </p>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,14 +1,80 @@
 spring.application.name=pedms
 
-# Supabase PostgreSQL
-spring.datasource.url=jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:5432/postgres
-spring.datasource.username=postgres.gkrefwplsoipfkwwuwrt
-spring.datasource.password=ВСТАВЬ_СЮДА_СВОЙ_ПАРОЛЬ
+# ---------------------------------------------------------------------------
+# Подключение к базе данных (TR030: ключи доступа не хранятся в исходном коде)
+#
+# Реквизиты передаются через переменные окружения. Создайте файл
+# application.properties рядом с этим примером (он не попадает в репозиторий)
+# или задайте переменные окружения в системе.
+#
+#   PowerShell:
+#     $env:DB_URL      = "jdbc:postgresql://<host>:5432/postgres"
+#     $env:DB_USERNAME = "<пользователь>"
+#     $env:DB_PASSWORD = "<пароль>"
+# ---------------------------------------------------------------------------
+spring.datasource.url=${DB_URL:jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:5432/postgres}
+spring.datasource.username=${DB_USERNAME:postgres.gkrefwplsoipfkwwuwrt}
+spring.datasource.password=${DB_PASSWORD:}
 
+# Пул соединений
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.connection-timeout=20000
+
+# ---------------------------------------------------------------------------
 # Hibernate
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
+#
+# Схема базы данных создаётся скриптами из каталога sql/ (шаг «Создание базы
+# данных в СУБД»), поэтому Hibernate ничего в базе не изменяет и не проверяет
+# типы столбцов.
+#
+# Почему не validate: проверка схемы в Hibernate не поддерживает домены
+# PostgreSQL — такой столбец драйвер сообщает как отдельный тип (DISTINCT),
+# и Hibernate отклоняет его как несовпадающий с VARCHAR. Поскольку домены —
+# обязательное средство защиты от ошибок ручного ввода (домены, маски и
+# CHECK-условия), они оставлены, а контроль полноты схемы выполняет
+# компонент SchemaVerifier при старте приложения: он сверяет состав
+# таблиц, доменов, представлений и функций с ожидаемым и выводит отчёт.
+#
+# Перед первым запуском выполните в Supabase (SQL Editor) или PgAdmin:
+#   sql/00_reset.sql   — сброс (если таблицы создавались автоматически)
+#   sql/01_schema.sql  — домены, таблицы, индексы
+#   sql/02_objects.sql — триггеры, представления, функции
+# ---------------------------------------------------------------------------
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.open-in-view=true
+spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=true
 
-# Server
+# ---------------------------------------------------------------------------
+# Сервер
+# ---------------------------------------------------------------------------
 server.port=8080
+server.error.include-message=always
+
+# ---------------------------------------------------------------------------
+# Параметры приложения
+# ---------------------------------------------------------------------------
+
+# Демонстрационный режим: на странице входа показываются учётные записи
+# и пароль, созданные при начальном наполнении справочников.
+app.demo-mode=true
+
+# Каталог хранения вложений к документам
+app.attachments-dir=./data/attachments
+
+# Максимальный размер одного вложения, байт (25 МБ)
+app.attachment.max-size=26214400
+
+# Максимальный суммарный размер вложений одного документа, байт (100 МБ)
+app.attachment.max-total-size=104857600
+
+# Срок напоминания об ознакомлении с ЛНА, дней
+app.acquaintance.reminder-days=3
+
+# Срок, после которого руководителю подразделения отправляется
+# уведомление о просрочке ознакомления, дней (FR120)
+app.acquaintance.escalation-days=7
+
+# Аннотация прав доступа: EMPLOYEE, MANAGER, HR, ADMIN
+# (в порядке возрастания прав)
+app.roles.ordered=EMPLOYEE,MANAGER,HR,ADMIN

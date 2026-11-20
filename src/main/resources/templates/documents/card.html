@@ -55,7 +55,154 @@
     <div class="col-md-6"><input class="form-control" type="file" name="file" required></div>
     <div class="col-md-3"><button class="btn btn-outline-primary" type="submit">Загрузить</button></div>
   </form>
+
+  <h2 class="h5 mt-4">Маршрут согласования</h2>
+  <div class="table-responsive" th:if="${!routeSteps.empty}">
+    <table class="table align-middle">
+      <thead><tr><th>№</th><th>Участник</th><th>Действие</th><th>Срок</th><th>Статус</th></tr></thead>
+      <tbody>
+      <tr th:each="step : ${routeSteps}">
+        <td th:text="${step.stepOrder}"></td>
+        <td>
+          <span th:text="${step.user?.fullName}"></span>
+          <span th:if="${step.delegatedFrom != null}" class="text-muted small"
+                th:text="' (делегировано от ' + ${step.delegatedFrom.fullName} + ')'"></span>
+        </td>
+        <td th:text="${step.action.title}"></td>
+        <td th:text="${step.deadline != null ? #temporals.format(step.deadline, 'dd.MM.yyyy') : 'Не задан'}"></td>
+        <td><span class="badge text-bg-secondary" th:text="${step.status.title}"></span></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-muted" th:if="${routeSteps.empty}">
+    Правило маршрутизации не найдено. Добавьте согласующих вручную.
+  </p>
+
+  <form th:if="${document.status.isEditable}" class="card card-body mb-3"
+        th:action="@{/documents/{id}/route(id=${document.id})}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h3 class="h6 mb-0">Корректировка маршрута</h3>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="add-route-step">Добавить этап</button>
+    </div>
+    <div id="route-step-rows">
+      <div class="row g-2 mb-2 route-row" th:if="${routeSteps.empty}">
+        <div class="col-md-5">
+          <select class="form-select" name="approverIds" required>
+            <option value="">Выберите согласующего</option>
+            <option th:each="approver : ${availableApprovers}" th:value="${approver.id}"
+                    th:text="${approver.fullName}"></option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" name="actions">
+            <option value="APPROVE">Согласование</option>
+            <option value="SIGN">Подписание</option>
+            <option value="REVIEW">Рассмотрение</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input class="form-control" type="number" name="deadlineDays" min="1" value="3" required>
+        </div>
+        <div class="col-md-2">
+          <button type="button" class="btn btn-outline-danger remove-route-step">Удалить</button>
+        </div>
+      </div>
+      <div class="row g-2 mb-2 route-row" th:each="step : ${routeSteps}">
+        <div class="col-md-5">
+          <select class="form-select" name="approverIds" required>
+            <option th:each="approver : ${availableApprovers}" th:value="${approver.id}"
+                    th:text="${approver.fullName}"
+                    th:selected="${step.user != null and step.user.id == approver.id}"></option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" name="actions">
+            <option value="APPROVE" th:selected="${step.action.name == 'APPROVE'}">Согласование</option>
+            <option value="SIGN" th:selected="${step.action.name == 'SIGN'}">Подписание</option>
+            <option value="REVIEW" th:selected="${step.action.name == 'REVIEW'}">Рассмотрение</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input class="form-control" type="number" name="deadlineDays" min="1" value="3" required
+                 th:title="'Срок в рабочих днях'">
+        </div>
+        <div class="col-md-2">
+          <button type="button" class="btn btn-outline-danger remove-route-step">Удалить</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-2" type="submit">Сохранить маршрут</button>
+  </form>
+
+  <form th:if="${document.status.isEditable}" class="mb-3"
+        th:action="@{/documents/{id}/submit(id=${document.id})}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <button class="btn btn-success" type="submit">Отправить на согласование</button>
+  </form>
+
+  <div th:if="${document.status.name == 'IN_APPROVAL' and canActOnRoute}" class="card card-body mb-3">
+    <h3 class="h6">Решение по активному этапу</h3>
+    <form class="row g-2 mb-2" th:action="@{/documents/{id}/approval/approve(id=${document.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="col-md-9"><input class="form-control" name="comment" placeholder="Комментарий"></div>
+      <div class="col-md-3"><button class="btn btn-success w-100" type="submit">Согласовать</button></div>
+    </form>
+    <form class="row g-2 mb-2" th:action="@{/documents/{id}/approval/return(id=${document.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="col-md-9"><input class="form-control" name="comment" placeholder="Причина возврата" required></div>
+      <div class="col-md-3"><button class="btn btn-warning w-100" type="submit">Вернуть на доработку</button></div>
+    </form>
+    <form class="row g-2 mb-2" th:action="@{/documents/{id}/approval/reject(id=${document.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="col-md-9"><input class="form-control" name="comment" placeholder="Причина отклонения" required></div>
+      <div class="col-md-3"><button class="btn btn-danger w-100" type="submit">Отклонить</button></div>
+    </form>
+    <form class="row g-2" th:action="@{/documents/{id}/approval/delegate(id=${document.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="col-md-5">
+        <select class="form-select" name="targetUserId" required>
+          <option value="">Выберите пользователя</option>
+          <option th:each="approver : ${availableApprovers}" th:value="${approver.id}" th:text="${approver.fullName}"></option>
+        </select>
+      </div>
+      <div class="col-md-5"><input class="form-control" name="comment" placeholder="Комментарий к делегированию"></div>
+      <div class="col-md-2"><button class="btn btn-outline-secondary w-100" type="submit">Делегировать</button></div>
+    </form>
+  </div>
+
+  <h2 class="h5 mt-4">История действий</h2>
+  <ul class="list-group" th:if="${!routeHistory.empty}">
+    <li class="list-group-item" th:each="item : ${routeHistory}">
+      <div class="d-flex justify-content-between">
+        <strong th:text="${item.action.title}"></strong>
+        <span class="text-muted small" th:text="${#temporals.format(item.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+      </div>
+      <div th:text="${item.user?.fullName}"></div>
+      <div class="text-muted" th:if="${item.comment != null}" th:text="${item.comment}"></div>
+    </li>
+  </ul>
+  <p class="text-muted" th:if="${routeHistory.empty}">История действий пуста</p>
 </main>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:inline="javascript">
+  const rows = document.getElementById("route-step-rows");
+  if (rows) {
+    const templateRow = rows.querySelector(".route-row")?.cloneNode(true);
+    document.getElementById("add-route-step").addEventListener("click", () => {
+      if (templateRow) {
+        const clone = templateRow.cloneNode(true);
+        clone.querySelectorAll("input").forEach(input => input.value = "3");
+        rows.appendChild(clone);
+      }
+    });
+    rows.addEventListener("click", event => {
+      if (event.target.classList.contains("remove-route-step")) {
+        event.target.closest(".route-row").remove();
+      }
+    });
+  }
+</script>
 </body>
 </html>

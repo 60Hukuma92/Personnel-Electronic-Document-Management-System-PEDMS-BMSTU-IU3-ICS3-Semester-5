@@ -1,11 +1,14 @@
 package bmstu.iu3.moiseev.pedms.web
 
 import bmstu.iu3.moiseev.pedms.domain.DocStatus
+import bmstu.iu3.moiseev.pedms.domain.StepAction
 import bmstu.iu3.moiseev.pedms.dto.DocumentForm
 import bmstu.iu3.moiseev.pedms.dto.DocumentValidationException
 import bmstu.iu3.moiseev.pedms.entity.DocumentEntity
 import bmstu.iu3.moiseev.pedms.repository.DocTypeRepository
 import bmstu.iu3.moiseev.pedms.service.DocumentService
+import bmstu.iu3.moiseev.pedms.service.RouteDraft
+import bmstu.iu3.moiseev.pedms.service.RoutingService
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -23,7 +26,8 @@ import java.time.LocalDate
 @RequestMapping("/documents")
 class DocumentController(
     private val documentService: DocumentService,
-    private val docTypeRepository: DocTypeRepository
+    private val docTypeRepository: DocTypeRepository,
+    private val routingService: RoutingService
 ) {
     @GetMapping
     fun list(
@@ -81,7 +85,130 @@ class DocumentController(
             ?: return "redirect:/documents"
         model.addAttribute("document", document)
         model.addAttribute("attachments", documentService.attachments(id))
+        model.addAttribute("routeSteps", routingService.previewRoute(id))
+        model.addAttribute("routeHistory", routingService.findHistory(id))
+        model.addAttribute("availableApprovers", routingService.availableApprovers())
+        model.addAttribute("canActOnRoute", routingService.canAct(id))
         return "documents/card"
+    }
+
+    @PostMapping("/{id}/submit")
+    fun submit(
+        @PathVariable id: Int,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        routingService.submit(id)
+        redirectAttributes.addFlashAttribute("successMessage", "Документ отправлен на согласование")
+        "redirect:/documents/$id"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    }
+
+    @PostMapping("/{id}/route")
+    fun saveRoute(
+        @PathVariable id: Int,
+        @RequestParam approverIds: List<Int>,
+        @RequestParam actions: List<String>,
+        @RequestParam deadlineDays: List<Int>,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        if (approverIds.size != actions.size || approverIds.size != deadlineDays.size) {
+            throw IllegalArgumentException("Некорректные данные маршрута")
+        }
+        val drafts = approverIds.indices.map { index ->
+            RouteDraft(
+                userId = approverIds[index],
+                action = StepAction.entries.firstOrNull { it.name == actions[index] }
+                    ?: throw IllegalArgumentException("Некорректное действие этапа"),
+                deadlineDays = deadlineDays[index],
+                stepOrder = index + 1
+            )
+        }
+        routingService.saveRoute(id, drafts)
+        redirectAttributes.addFlashAttribute("successMessage", "Маршрут скорректирован")
+        "redirect:/documents/$id"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    }
+
+    @PostMapping("/{id}/approval/approve")
+    fun approve(
+        @PathVariable id: Int,
+        @RequestParam(required = false) comment: String?,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        routingService.approve(id, comment)
+        redirectAttributes.addFlashAttribute("successMessage", "Этап согласования выполнен")
+        "redirect:/documents/$id"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    } catch (ex: org.springframework.security.access.AccessDeniedException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    }
+
+    @PostMapping("/{id}/approval/return")
+    fun returnForRework(
+        @PathVariable id: Int,
+        @RequestParam comment: String,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        routingService.returnForRework(id, comment)
+        redirectAttributes.addFlashAttribute("successMessage", "Документ возвращён на доработку")
+        "redirect:/documents/$id"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    }
+
+    @PostMapping("/{id}/approval/reject")
+    fun reject(
+        @PathVariable id: Int,
+        @RequestParam comment: String,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        routingService.reject(id, comment)
+        redirectAttributes.addFlashAttribute("successMessage", "Документ отклонён")
+        "redirect:/documents/$id"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    }
+
+    @PostMapping("/{id}/approval/delegate")
+    fun delegate(
+        @PathVariable id: Int,
+        @RequestParam targetUserId: Int,
+        @RequestParam(required = false) comment: String?,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        routingService.delegate(id, targetUserId, comment)
+        redirectAttributes.addFlashAttribute("successMessage", "Этап делегирован")
+        "redirect:/documents/$id"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/$id"
     }
 
     @GetMapping("/{id}/edit")

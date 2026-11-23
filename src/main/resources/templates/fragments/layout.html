@@ -30,21 +30,6 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/documents}">Документы</a>
                 </li>
-                <li class="nav-item"
-                    th:if="${currentUser != null and (currentUser.role.name() == 'MANAGER' or currentUser.role.name() == 'HR' or currentUser.role.name() == 'ADMIN')}">
-                    <a class="nav-link" th:href="@{/approval}">Согласование</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/acquaintance}">Ознакомление</a>
-                </li>
-                <li class="nav-item"
-                    th:if="${currentUser != null and (currentUser.role.name() == 'HR' or currentUser.role.name() == 'ADMIN')}">
-                    <a class="nav-link" th:href="@{/references}">Справочники</a>
-                </li>
-                <li class="nav-item"
-                    th:if="${currentUser != null and (currentUser.role.name() == 'HR' or currentUser.role.name() == 'ADMIN')}">
-                    <a class="nav-link" th:href="@{/reports}">Отчёты</a>
-                </li>
                 <li class="nav-item" th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}">
                     <a class="nav-link" th:href="@{/admin/users}">Администрирование</a>
                 </li>
@@ -71,7 +56,6 @@
                             </span>
                         </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{/settings}">Настройки</a></li>
                         <li>
                             <form th:action="@{/logout}" method="post" class="px-3 py-1">
                                 <button type="submit" class="btn btn-sm btn-outline-secondary">

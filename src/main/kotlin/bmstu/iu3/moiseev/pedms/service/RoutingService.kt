@@ -5,6 +5,7 @@ import bmstu.iu3.moiseev.pedms.domain.DocStatus
 import bmstu.iu3.moiseev.pedms.domain.StepAction
 import bmstu.iu3.moiseev.pedms.domain.StepStatus
 import bmstu.iu3.moiseev.pedms.domain.UserStatus
+import bmstu.iu3.moiseev.pedms.domain.UserRole
 import bmstu.iu3.moiseev.pedms.entity.AppUserEntity
 import bmstu.iu3.moiseev.pedms.entity.AuditLogEntity
 import bmstu.iu3.moiseev.pedms.entity.DocumentEntity
@@ -305,6 +306,14 @@ class RoutingService(
             parent.manager?.takeIf { it.position?.id == positionId && it.status == UserStatus.ACTIVE }
                 ?.let { return listOf(it) }
             parent = parent.parent
+        }
+
+        // Если в справочнике не заполнена ссылка department.manager, не теряем
+        // этап: для роли руководителя используем активного пользователя с этой ролью.
+        if (rule.approverPosition?.name == "Руководитель отдела") {
+            appUserRepository.findAllByRoleOrderByFullNameAsc(UserRole.MANAGER)
+                .filter { it.status == UserStatus.ACTIVE }
+                .takeIf { it.isNotEmpty() }?.let { return it }
         }
         return emptyList()
     }

@@ -8,6 +8,7 @@ import bmstu.iu3.moiseev.pedms.entity.DocumentEntity
 import bmstu.iu3.moiseev.pedms.repository.AttachmentRepository
 import bmstu.iu3.moiseev.pedms.repository.DocTypeRepository
 import bmstu.iu3.moiseev.pedms.repository.DocumentRepository
+import bmstu.iu3.moiseev.pedms.repository.RouteStepRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -23,6 +24,7 @@ class DocumentService(
     private val documentRepository: DocumentRepository,
     private val docTypeRepository: DocTypeRepository,
     private val attachmentRepository: AttachmentRepository,
+    private val routeStepRepository: RouteStepRepository,
     private val currentUserService: CurrentUserService
 ) {
     fun findActiveTypes() = docTypeRepository.findAllByIsActiveTrueOrderByNameAsc()
@@ -60,6 +62,19 @@ class DocumentService(
         val isAccessible = document.author?.id == user.id ||
             documentRepository.findAccessibleTo(user.id ?: 0).any { it.id == document.id }
         return document.takeIf { isAccessible }
+    }
+
+    fun findAwaitingDecision(): List<DocumentEntity> {
+        val user = currentUserService.requireCurrentUser()
+        return documentRepository.findAccessibleTo(user.id ?: 0)
+            .filter { document ->
+                document.status == bmstu.iu3.moiseev.pedms.domain.DocStatus.IN_APPROVAL &&
+                    routeStepRepository.findAllByDocumentIdAndUserIdOrderByStepOrderAsc(
+                        document.id ?: 0,
+                        user.id ?: 0
+                    ).any { it.status == bmstu.iu3.moiseev.pedms.domain.StepStatus.IN_PROGRESS }
+            }
+            .sortedByDescending { it.updatedAt }
     }
 
     @Transactional

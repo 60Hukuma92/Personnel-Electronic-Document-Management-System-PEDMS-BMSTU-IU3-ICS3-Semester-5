@@ -10,6 +10,7 @@ import bmstu.iu3.moiseev.pedms.entity.DocumentEntity
 import bmstu.iu3.moiseev.pedms.repository.AttachmentRepository
 import bmstu.iu3.moiseev.pedms.repository.DocTypeRepository
 import bmstu.iu3.moiseev.pedms.repository.DocumentRepository
+import bmstu.iu3.moiseev.pedms.repository.RouteStepRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -22,6 +23,7 @@ class DocumentServiceTests {
     private lateinit var documentRepository: DocumentRepository
     private lateinit var docTypeRepository: DocTypeRepository
     private lateinit var attachmentRepository: AttachmentRepository
+    private lateinit var routeStepRepository: RouteStepRepository
     private lateinit var currentUserService: CurrentUserService
     private lateinit var documentService: DocumentService
     private lateinit var user: AppUserEntity
@@ -32,11 +34,13 @@ class DocumentServiceTests {
         documentRepository = mock(DocumentRepository::class.java)
         docTypeRepository = mock(DocTypeRepository::class.java)
         attachmentRepository = mock(AttachmentRepository::class.java)
+        routeStepRepository = mock(RouteStepRepository::class.java)
         currentUserService = mock(CurrentUserService::class.java)
         documentService = DocumentService(
             documentRepository,
             docTypeRepository,
             attachmentRepository,
+            routeStepRepository,
             currentUserService
         )
         user = AppUserEntity(id = 7, fullName = "Тестовый Сотрудник", email = "test@pedms.ru")

@@ -75,6 +75,10 @@ app.acquaintance.reminder-days=3
 # уведомление о просрочке ознакомления, дней (FR120)
 app.acquaintance.escalation-days=7
 
+# Период запуска планировщика и периодичность напоминаний
+pedms.notifications.scheduler-delay-ms=3600000
+pedms.notifications.reminder-period-hours=24
+
 # Аннотация прав доступа: EMPLOYEE, MANAGER, HR, ADMIN
 # (в порядке возрастания прав)
 app.roles.ordered=EMPLOYEE,MANAGER,HR,ADMIN

@@ -33,7 +33,8 @@ class AcquaintanceService(
     private val positionRepository: PositionRepository,
     private val auditLogRepository: AuditLogRepository,
     private val currentUserService: CurrentUserService,
-    private val signatureService: SignatureService
+    private val signatureService: SignatureService,
+    private val notificationService: NotificationService
 ) {
     fun documentsForCreation() = documentRepository.findAllByOrderByCreatedAtDesc()
         .filter { it.status == DocStatus.SIGNED || it.isSigned == true }
@@ -78,7 +79,15 @@ class AcquaintanceService(
                 acknowledgedCount = 0
             )
         )
-        markRepository.saveAll(users.map { AcquaintanceMarkEntity(sheet = sheet, user = it) })
+        markRepository.saveAll(users.map { user ->
+            notificationService.notify(
+                user,
+                bmstu.iu3.moiseev.pedms.domain.NotificationEvent.ACQUAINTANCE_REQUIRED,
+                document,
+                "Требуется ознакомиться с документом «${document.title}» до ${form.deadline}"
+            )
+            AcquaintanceMarkEntity(sheet = sheet, user = user)
+        })
         auditLogRepository.save(
             AuditLogEntity(
                 document = document,

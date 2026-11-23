@@ -34,6 +34,7 @@ class RoutingServiceTests {
     private lateinit var appUserRepository: AppUserRepository
     private lateinit var auditLogRepository: AuditLogRepository
     private lateinit var currentUserService: CurrentUserService
+    private lateinit var notificationService: NotificationService
     private lateinit var routingService: RoutingService
     private lateinit var author: AppUserEntity
     private lateinit var approver: AppUserEntity
@@ -47,13 +48,15 @@ class RoutingServiceTests {
         appUserRepository = mock(AppUserRepository::class.java)
         auditLogRepository = mock(AuditLogRepository::class.java)
         currentUserService = mock(CurrentUserService::class.java)
+        notificationService = mock(NotificationService::class.java)
         routingService = RoutingService(
             documentRepository,
             routeRuleRepository,
             routeStepRepository,
             appUserRepository,
             auditLogRepository,
-            currentUserService
+            currentUserService,
+            notificationService
         )
 
         val department = DepartmentEntity(id = 5, name = "Отдел разработки", code = "DEV", path = "/1/5/")

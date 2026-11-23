@@ -45,6 +45,10 @@
                     th:if="${currentUser != null and (currentUser.role.name() == 'HR' or currentUser.role.name() == 'ADMIN')}">
                     <a class="nav-link" th:href="@{/reports}">Отчёты</a>
                 </li>
+                <li class="nav-item"
+                    th:if="${currentUser != null and (currentUser.role.name() == 'HR' or currentUser.role.name() == 'ADMIN')}">
+                    <a class="nav-link" th:href="@{/archive}">Архив</a>
+                </li>
                 <li class="nav-item" th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}">
                     <a class="nav-link" th:href="@{/admin/users}">Администрирование</a>
                 </li>

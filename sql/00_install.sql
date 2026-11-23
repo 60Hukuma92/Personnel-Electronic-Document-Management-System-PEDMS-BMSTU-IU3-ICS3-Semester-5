@@ -1278,11 +1278,11 @@ DECLARE
     v_count INTEGER;
 BEGIN
     WITH archived AS (
-        UPDATE document
+        UPDATE document d
         SET status     = 'ARCHIVED',
             updated_at = now()
-        WHERE status = 'SIGNED'
-          AND created_at < p_before
+        WHERE d.status = 'SIGNED'
+          AND d.updated_at < p_before
         RETURNING doc_id
     )
     SELECT COUNT(*) INTO v_count FROM archived;

@@ -35,12 +35,23 @@ class DocumentService(
         to: LocalDate?
     ): List<DocumentEntity> {
         val user = currentUserService.requireCurrentUser()
+        val normalizedText = text?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
         val fromDateTime = from?.atStartOfDay()
         val toDateTime = to?.plusDays(1)?.atStartOfDay()?.minusNanos(1)
 
-        val searched = documentRepository.search(typeId, status, null, text, fromDateTime, toDateTime)
-        val allowedIds = documentRepository.findAccessibleTo(user.id ?: 0).mapNotNull { it.id }.toSet()
-        return searched.filter { it.id in allowedIds }
+        return documentRepository.findAccessibleTo(user.id ?: 0)
+            .asSequence()
+            .filter { typeId == null || it.type?.id == typeId }
+            .filter { status == null || it.status == status }
+            .filter { document ->
+                normalizedText == null ||
+                    document.title.lowercase().contains(normalizedText) ||
+                    document.number?.lowercase()?.contains(normalizedText) == true
+            }
+            .filter { fromDateTime == null || it.createdAt >= fromDateTime }
+            .filter { toDateTime == null || it.createdAt <= toDateTime }
+            .sortedByDescending { it.createdAt }
+            .toList()
     }
 
     fun findById(id: Int): DocumentEntity? {

@@ -38,29 +38,6 @@ interface DocumentRepository : JpaRepository<DocumentEntity, Int> {
 
     fun findByNumber(number: String): DocumentEntity?
 
-    @Query(
-        """
-        select d from DocumentEntity d
-        where (:typeId is null or d.type.id = :typeId)
-          and (:status is null or d.status = :status)
-          and (:authorId is null or d.author.id = :authorId)
-          and (:text is null
-               or lower(d.title) like lower(concat('%', :text, '%'))
-               or lower(d.number) like lower(concat('%', :text, '%')))
-          and (:from is null or d.createdAt >= :from)
-          and (:to is null or d.createdAt <= :to)
-        order by d.createdAt desc
-        """
-    )
-    fun search(
-        typeId: Int?,
-        status: DocStatus?,
-        authorId: Int?,
-        text: String?,
-        from: java.time.LocalDateTime?,
-        to: java.time.LocalDateTime?
-    ): List<DocumentEntity>
-
     /**
      * Документы, в которых пользователь является автором, участником
      * маршрута или адресатом листа ознакомления (TR040 — разграничение

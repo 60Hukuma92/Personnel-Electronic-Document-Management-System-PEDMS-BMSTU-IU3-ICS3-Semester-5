@@ -7,33 +7,33 @@
 
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="container">
+<div class="container mb-5">
 
-    <div th:replace="~{fragments/layout :: breadcrumbs(~{'Администрирование','Учётные записи','Загрузка из файла'})}"></div>
+    <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Администрирование','Учётные записи','Загрузка из файла'} })}"></div>
 
-    <h1 class="h3 mb-4">Загрузка учётных записей из файла (FR010)</h1>
+    <h1 class="h3 mb-4">Загрузка учётных записей из файла</h1>
 
-    <div class="alert alert-danger" th:if="${importError}">
-        <i class="bi bi-exclamation-triangle me-1"></i><span th:text="${importError}"></span>
+    <div class="alert alert-danger d-flex align-items-center mb-3" th:if="${importError}">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i><span th:text="${importError}"></span>
     </div>
 
     <div class="row g-4">
         <div class="col-12 col-lg-5">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white"><h2 class="h6 mb-0">Файл</h2></div>
+            <div class="card mb-4">
+                <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-file-earmark-arrow-up me-2"></i>Выбор файла</h2></div>
                 <div class="card-body">
                     <form method="post" th:action="@{/admin/users/import}" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <label for="file" class="form-label">Файл XLSX или CSV</label>
+                            <label for="file" class="form-label fw-medium">Файл XLSX или CSV</label>
                             <input type="file" class="form-control" id="file" name="file"
                                    accept=".xlsx,.xls,.csv" required>
-                            <div class="form-text">Первая строка файла — заголовки столбцов.</div>
+                            <div class="form-text">Первая строка файла должна содержать заголовки столбцов.</div>
                         </div>
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-upload me-1"></i>Загрузить
                             </button>
-                            <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/users/import/template}">
+                            <a class="btn btn-outline-secondary" th:href="@{/admin/users/import/template}">
                                 <i class="bi bi-download me-1"></i>Скачать шаблон
                             </a>
                         </div>
@@ -41,74 +41,71 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-white"><h2 class="h6 mb-0">Формат файла</h2></div>
+            <div class="card">
+                <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-info-circle me-2"></i>Формат файла</h2></div>
                 <div class="card-body small">
-                    <p class="mb-2">Наименования столбцов распознаются на русском и английском языках.
-                        Обязательные столбцы отмечены знаком <span class="text-danger">*</span>.</p>
-                    <table class="table table-sm small mb-2">
-                        <thead class="table-light">
-                        <tr><th>Столбец</th><th>Обязательный</th><th>Пример</th></tr>
-                        </thead>
-                        <tbody>
-                        <tr><td>ФИО <span class="text-danger">*</span></td><td>да</td><td>Петрова Анна Сергеевна</td></tr>
-                        <tr><td>Электронная почта <span class="text-danger">*</span></td><td>да</td><td>petrova@pedms.ru</td></tr>
-                        <tr><td>Подразделение <span class="text-danger">*</span></td><td>да</td><td>DEV или «Группа разработки»</td></tr>
-                        <tr><td>Должность <span class="text-danger">*</span></td><td>да</td><td>Инженер</td></tr>
-                        <tr><td>Табельный номер</td><td>нет</td><td>ИУ3-00001</td></tr>
-                        <tr><td>ИНН</td><td>нет</td><td>500100732259</td></tr>
-                        <tr><td>СНИЛС</td><td>нет</td><td>001-001-001 00</td></tr>
-                        <tr><td>Телефон</td><td>нет</td><td>+7 916 123-45-67</td></tr>
-                        <tr><td>Дата рождения</td><td>нет</td><td>12.04.1990</td></tr>
-                        <tr><td>Роль</td><td>нет</td><td>EMPLOYEE, MANAGER, HR, ADMIN</td></tr>
-                        <tr><td>Пароль</td><td>нет</td><td>если не указан — формируется системой</td></tr>
-                        </tbody>
-                    </table>
-                    <p class="mb-0 text-muted">
-                        Каждая строка проверяется отдельно: строки с ошибками не загружаются,
-                        а причины ошибок перечисляются в отчёте под формой.
-                    </p>
+                    <p class="mb-2">Столбцы распознаются на русском и английском языках.
+                        Обязательные столбцы отмечены <span class="text-danger">*</span>.</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm small mb-2">
+                            <thead>
+                            <tr><th>Столбец</th><th>Обяз.</th><th>Пример</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>ФИО <span class="text-danger">*</span></td><td>да</td><td>Петрова Анна Сергеевна</td></tr>
+                            <tr><td>Email <span class="text-danger">*</span></td><td>да</td><td>petrova@pedms.ru</td></tr>
+                            <tr><td>Подразделение <span class="text-danger">*</span></td><td>да</td><td>DEV или Группа разработки</td></tr>
+                            <tr><td>Должность <span class="text-danger">*</span></td><td>да</td><td>Инженер</td></tr>
+                            <tr><td>Табельный №</td><td>нет</td><td>ИУ3-00001</td></tr>
+                            <tr><td>ИНН</td><td>нет</td><td>500100732259</td></tr>
+                            <tr><td>СНИЛС</td><td>нет</td><td>001-001-001 00</td></tr>
+                            <tr><td>Телефон</td><td>нет</td><td>+7 916 123-45-67</td></tr>
+                            <tr><td>Дата рождения</td><td>нет</td><td>12.04.1990</td></tr>
+                            <tr><td>Роль</td><td>нет</td><td>EMPLOYEE, MANAGER, HR, ADMIN</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-12 col-lg-7">
             <!-- Отчёт о загрузке -->
-            <div class="card shadow-sm" th:if="${report != null}">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h2 class="h6 mb-0">Отчёт о загрузке</h2>
+            <div class="card" th:if="${report != null}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h6 mb-0"><i class="bi bi-clipboard-data me-2"></i>Отчёт о загрузке</h2>
                     <span class="badge text-bg-primary"
                           th:text="'Загружено: ' + ${report.importedRows} + ' из ' + ${report.totalRows}">0</span>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3 mb-3">
+                    <div class="row g-3 mb-3 text-center">
                         <div class="col-4">
-                            <div class="border rounded p-2 text-center">
-                                <div class="h4 mb-0" th:text="${report.totalRows}">0</div>
-                                <div class="small text-muted">строк в файле</div>
+                            <div class="border rounded p-2 bg-light">
+                                <div class="fs-4 fw-bold text-dark" th:text="${report.totalRows}">0</div>
+                                <div class="small text-muted">Строк всего</div>
                             </div>
                         </div>
                         <div class="col-4">
-                            <div class="border rounded p-2 text-center border-success">
-                                <div class="h4 mb-0 text-success" th:text="${report.importedRows}">0</div>
-                                <div class="small text-muted">загружено</div>
+                            <div class="border rounded p-2 bg-success bg-opacity-10 border-success">
+                                <div class="fs-4 fw-bold text-success" th:text="${report.importedRows}">0</div>
+                                <div class="small text-muted">Загружено</div>
                             </div>
                         </div>
                         <div class="col-4">
-                            <div class="border rounded p-2 text-center border-danger">
-                                <div class="h4 mb-0 text-danger" th:text="${report.failedRows}">0</div>
-                                <div class="small text-muted">с ошибками</div>
+                            <div class="border rounded p-2 bg-danger bg-opacity-10 border-danger">
+                                <div class="fs-4 fw-bold text-danger" th:text="${report.failedRows}">0</div>
+                                <div class="small text-muted">С ошибками</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="table-responsive">
                         <table class="table table-sm table-hover align-middle">
-                            <thead class="table-light">
+                            <thead>
                             <tr>
                                 <th>Строка</th>
                                 <th>ФИО</th>
-                                <th>Электронная почта</th>
+                                <th>Email</th>
                                 <th>Результат</th>
                             </tr>
                             </thead>
@@ -118,10 +115,10 @@
                                 <td th:text="${r.fullName}">ФИО</td>
                                 <td th:text="${r.email}">email</td>
                                 <td>
-                                    <span th:if="${r.isSuccess}" class="text-success">
-                                        <i class="bi bi-check-circle me-1"></i>загружено
+                                    <span th:if="${r.isSuccess}" class="badge text-bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Загружено
                                     </span>
-                                    <span th:unless="${r.isSuccess}" class="text-danger">
+                                    <span th:unless="${r.isSuccess}" class="badge text-bg-danger">
                                         <i class="bi bi-x-circle me-1"></i><span th:text="${r.error}">ошибка</span>
                                     </span>
                                 </td>
@@ -130,21 +127,21 @@
                         </table>
                     </div>
 
-                    <p class="small text-muted mb-0" th:if="${report.importedRows > 0}">
-                        Временные пароли загруженных сотрудников:
-                    </p>
-                    <ul class="small mb-0" th:if="${report.importedRows > 0}">
-                        <li th:each="r : ${report.rows}" th:if="${r.isSuccess and r.password != null}">
-                            <span th:text="${r.email}">email</span> — <code th:text="${r.password}">password</code>
-                        </li>
-                    </ul>
+                    <div class="mt-3 p-3 bg-light rounded" th:if="${report.importedRows > 0}">
+                        <h3 class="h6 mb-2">Сгенерированные временные пароли:</h3>
+                        <ul class="small mb-0 ps-3">
+                            <li th:each="r : ${report.rows}" th:if="${r.isSuccess and r.password != null}">
+                                <span class="fw-bold" th:text="${r.email}">email</span> — <code class="text-dark fw-bold" th:text="${r.password}">password</code>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-            <div class="card shadow-sm" th:if="${report == null}">
+            <div class="card" th:if="${report == null}">
                 <div class="card-body text-center text-muted py-5">
-                    <i class="bi bi-file-earmark-spreadsheet fs-1 d-block mb-2"></i>
-                    Загрузите файл — здесь появится отчёт о результатах проверки строк.
+                    <i class="bi bi-file-earmark-spreadsheet fs-1 d-block mb-2 text-success"></i>
+                    Загрузите файл — здесь появится подробный отчёт о результатах обработки.
                 </div>
             </div>
         </div>

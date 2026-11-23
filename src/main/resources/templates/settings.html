@@ -5,25 +5,26 @@
 </head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<div class="container">
+<div class="container mb-5">
     <div th:replace="~{fragments/layout :: breadcrumbs(${'Настройки'})}"></div>
     <h1 class="h3 mb-4">Настройки уведомлений</h1>
     <div th:replace="~{fragments/messages :: messages}"></div>
-    <form method="post" th:action="@{/settings}" class="card shadow-sm">
-        <div class="card-body">
-            <h2 class="h6">Каналы</h2>
-            <div class="form-check">
+    <form method="post" th:action="@{/settings}" class="card col-lg-8">
+        <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-bell-gear me-2"></i>Параметры оповещений</h2></div>
+        <div class="card-body p-4">
+            <h2 class="h6 text-muted fw-bold mb-3">Каналы доставки</h2>
+            <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" name="webEnabled" value="true"
                        th:checked="${settings.notifWebEnabled}" id="webEnabled">
-                <label class="form-check-label" for="webEnabled">Веб-интерфейс</label>
+                <label class="form-check-label fw-medium" for="webEnabled">Веб-интерфейс (уведомления в системе)</label>
             </div>
             <div class="form-check mb-4">
                 <input class="form-check-input" type="checkbox" name="emailEnabled" value="true"
                        th:checked="${settings.notifEmailEnabled}" id="emailEnabled">
-                <label class="form-check-label" for="emailEnabled">Электронная почта</label>
+                <label class="form-check-label fw-medium" for="emailEnabled">Электронная почта (email-рассылка)</label>
             </div>
-            <h2 class="h6">Типы событий</h2>
-            <div class="row g-2">
+            <h2 class="h6 text-muted fw-bold mb-3">Типы отслеживаемых событий</h2>
+            <div class="row g-3">
                 <div class="col-md-6" th:each="event : ${events}">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="events"
@@ -34,8 +35,8 @@
                 </div>
             </div>
         </div>
-        <div class="card-footer bg-white">
-            <button type="submit" class="btn btn-primary">Сохранить</button>
+        <div class="card-footer bg-white p-3">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Сохранить настройки</button>
         </div>
     </form>
 </div>

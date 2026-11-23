@@ -3,26 +3,56 @@
 <head th:replace="~{fragments/layout :: head('Лист ознакомления')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<main class="container">
+<main class="container mb-5">
     <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Ознакомление', 'Лист'} })}"></div>
     <div th:replace="~{fragments/messages :: messages}"></div>
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 th:text="${sheet.document.title}">Лист ознакомления</h1>
-        <a class="btn btn-outline-secondary" th:href="@{/acquaintance/{id}/pending.csv(id=${sheet.id})}">Выгрузить не ознакомившихся</a>
+
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <div>
+                    <h1 class="h3 text-dark fw-bold mb-1" th:text="${sheet.document.title}">Лист ознакомления</h1>
+                    <p class="text-muted mb-0">Срок ознакомления: <strong class="text-dark" th:text="${sheet.deadline ?: 'не задан'}">—</strong></p>
+                </div>
+                <a class="btn btn-outline-secondary" th:href="@{/acquaintance/{id}/pending.csv(id=${sheet.id})}">
+                    <i class="bi bi-download me-1"></i>Выгрузить не ознакомившихся
+                </a>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>Прогресс ознакомления</span>
+                    <span class="fw-bold text-dark" th:text="${summary.percent + '%'}">0%</span>
+                </div>
+                <div class="progress" role="progressbar" style="height: 1rem;">
+                    <div class="progress-bar" th:style="'width:' + ${summary.percent} + '%'" th:text="${summary.percent + '%'}">0%</div>
+                </div>
+            </div>
+            <p class="text-muted small mb-0" th:text="${summary.acknowledged + ' из ' + summary.total + ' ознакомились; осталось: ' + summary.pending}"></p>
+        </div>
     </div>
-    <p class="text-muted">Срок: <span th:text="${sheet.deadline ?: 'не задан'}">—</span></p>
-    <div class="progress mb-3" role="progressbar">
-        <div class="progress-bar" th:style="'width:' + ${summary.percent} + '%'" th:text="${summary.percent + '%'}">0%</div>
+
+    <div class="card">
+        <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-people me-2"></i>Список участников</h2></div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Сотрудник</th><th>Статус</th><th>Дата ознакомления</th></tr></thead>
+                    <tbody>
+                    <tr th:each="mark : ${marks}">
+                        <td class="fw-medium text-dark" th:text="${mark.user.fullName}">Сотрудник</td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${mark.status.name() == 'ACKNOWLEDGED'} ? 'text-bg-success' : 'text-bg-warning'"
+                                  th:text="${mark.status.title}">Не ознакомлен</span>
+                        </td>
+                        <td class="text-muted small" th:text="${mark.readAt ?: '—'}">—</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <p th:text="${summary.acknowledged + ' из ' + summary.total + ' ознакомились; осталось: ' + summary.pending}"></p>
-    <table class="table table-sm">
-        <thead><tr><th>Сотрудник</th><th>Статус</th><th>Дата</th></tr></thead>
-        <tbody><tr th:each="mark : ${marks}">
-            <td th:text="${mark.user.fullName}">Сотрудник</td>
-            <td th:text="${mark.status.title}">Не ознакомлен</td>
-            <td th:text="${mark.readAt ?: '—'}">—</td>
-        </tr></tbody>
-    </table>
 </main>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>

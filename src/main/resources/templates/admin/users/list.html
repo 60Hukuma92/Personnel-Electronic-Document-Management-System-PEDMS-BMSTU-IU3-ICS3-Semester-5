@@ -7,20 +7,20 @@
 
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="container">
+<div class="container mb-5">
 
-    <div th:replace="~{fragments/layout :: breadcrumbs(~{'Администрирование','Учётные записи'})}"></div>
+    <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Администрирование','Учётные записи'} })}"></div>
 
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1">Учётные записи</h1>
-            <p class="text-muted mb-0">Управление пользователями системы: создание, импорт, блокировка и удаление</p>
+            <h1 class="h3 mb-1">Управление учётными записями</h1>
+            <p class="text-muted mb-0">Администрирование пользователей: создание, импорт из XLSX/CSV, блокировка и профили</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/users/import}">
+            <a class="btn btn-outline-secondary" th:href="@{/admin/users/import}">
                 <i class="bi bi-upload me-1"></i>Загрузить из файла
             </a>
-            <a class="btn btn-primary btn-sm" th:href="@{/admin/users/new}">
+            <a class="btn btn-primary" th:href="@{/admin/users/new}">
                 <i class="bi bi-person-plus me-1"></i>Создать учётную запись
             </a>
         </div>
@@ -34,27 +34,30 @@
     <!-- Сводка по статусам -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3" th:each="s : ${statuses}">
-            <div class="card shadow-sm h-100">
+            <div class="card stat-card h-100">
                 <div class="card-body">
-                    <h3 class="h6 text-muted" th:text="${s.title}">Статус</h3>
-                    <p class="display-6 mb-0" th:text="${statusCounts[s]}">0</p>
+                    <h3 class="h6 text-muted mb-1" th:text="${s.title}">Статус</h3>
+                    <p class="display-6 fw-bold text-dark mb-0" th:text="${statusCounts[s]}">0</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Фильтры -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white"><h2 class="h6 mb-0">Поиск и фильтры</h2></div>
+    <div class="card mb-4">
+        <div class="card-header d-flex align-items-center">
+            <i class="bi bi-funnel me-2 text-primary"></i>
+            <h2 class="h6 mb-0">Поиск и фильтры</h2>
+        </div>
         <div class="card-body">
             <form method="get" th:action="@{/admin/users}" class="row g-3 align-items-end">
                 <div class="col-12 col-lg-4">
-                    <label for="query" class="form-label">Поиск</label>
+                    <label for="query" class="form-label small text-muted mb-1">Поиск</label>
                     <input type="text" class="form-control" id="query" name="query" th:value="${query}"
                            placeholder="ФИО, почта, табельный номер, ИНН">
                 </div>
                 <div class="col-6 col-lg-2">
-                    <label for="role" class="form-label">Роль</label>
+                    <label for="role" class="form-label small text-muted mb-1">Роль</label>
                     <select class="form-select" id="role" name="role">
                         <option value="">Все</option>
                         <option th:each="r : ${roles}" th:value="${r.name}" th:text="${r.title}"
@@ -62,7 +65,7 @@
                     </select>
                 </div>
                 <div class="col-6 col-lg-2">
-                    <label for="status" class="form-label">Статус</label>
+                    <label for="status" class="form-label small text-muted mb-1">Статус</label>
                     <select class="form-select" id="status" name="status">
                         <option value="">Все</option>
                         <option th:each="s : ${statuses}" th:value="${s.name}" th:text="${s.title}"
@@ -70,7 +73,7 @@
                     </select>
                 </div>
                 <div class="col-6 col-lg-2">
-                    <label for="departmentId" class="form-label">Подразделение</label>
+                    <label for="departmentId" class="form-label small text-muted mb-1">Подразделение</label>
                     <select class="form-select" id="departmentId" name="departmentId">
                         <option value="">Все</option>
                         <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"
@@ -78,67 +81,70 @@
                     </select>
                 </div>
                 <div class="col-6 col-lg-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="bi bi-funnel me-1"></i>Применить
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i>Найти
                     </button>
-                    <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/users}">Сбросить</a>
+                    <a class="btn btn-outline-secondary" th:href="@{/admin/users}"><i class="bi bi-x-lg"></i></a>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Реестр -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h2 class="h6 mb-0">
-                Найдено записей: <span th:text="${#lists.size(users)}">0</span>
+                Найдено записей: <strong class="text-primary" th:text="${#lists.size(users)}">0</strong>
             </h2>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>ФИО</th>
-                    <th>Электронная почта</th>
-                    <th>Табельный номер</th>
-                    <th>Подразделение</th>
-                    <th>Должность</th>
-                    <th>Роль</th>
-                    <th>Статус</th>
-                    <th class="text-end">Действия</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="u : ${users}">
-                    <td>
-                        <a th:href="@{'/admin/users/' + ${u.id}}" th:text="${u.fullName}">ФИО</a>
-                    </td>
-                    <td th:text="${u.email}">email</td>
-                    <td th:text="${u.personnelNumber ?: '—'}">—</td>
-                    <td th:text="${u.department?.name ?: '—'}">—</td>
-                    <td th:text="${u.position?.name ?: '—'}">—</td>
-                    <td th:text="${u.role.title}">Роль</td>
-                    <td>
-                        <span class="badge"
-                              th:classappend="${u.status.name() == 'ACTIVE'} ? 'text-bg-success' :
-                                       (${u.status.name() == 'BLOCKED'} ? 'text-bg-warning' :
-                                       (${u.status.name() == 'DELETED'} ? 'text-bg-danger' : 'text-bg-secondary'))"
-                              th:text="${u.status.title}">Статус</span>
-                    </td>
-                    <td class="text-end">
-                        <a class="btn btn-sm btn-outline-secondary"
-                           th:href="@{'/admin/users/' + ${u.id} + '/edit'}">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(users)}">
-                    <td colspan="8" class="text-center text-muted py-4">
-                        Учётные записи не найдены
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Email (логин)</th>
+                        <th>Табельный №</th>
+                        <th>Подразделение</th>
+                        <th>Должность</th>
+                        <th>Роль</th>
+                        <th>Статус</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="u : ${users}">
+                        <td>
+                            <a class="fw-bold text-dark" th:href="@{'/admin/users/' + ${u.id}}" th:text="${u.fullName}">ФИО</a>
+                        </td>
+                        <td th:text="${u.email}">email</td>
+                        <td th:text="${u.personnelNumber ?: '—'}">—</td>
+                        <td th:text="${u.department?.name ?: '—'}">—</td>
+                        <td th:text="${u.position?.name ?: '—'}">—</td>
+                        <td><span class="badge text-bg-primary" th:text="${u.role.title}">Роль</span></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${u.status.name() == 'ACTIVE'} ? 'text-bg-success' :
+                                           (${u.status.name() == 'BLOCKED'} ? 'text-bg-warning' :
+                                           (${u.status.name() == 'DELETED'} ? 'text-bg-danger' : 'text-bg-secondary'))"
+                                  th:text="${u.status.title}">Статус</span>
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary"
+                               th:href="@{'/admin/users/' + ${u.id} + '/edit'}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(users)}">
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-person-x fs-2 d-block mb-1"></i>
+                            Учётные записи не найдены
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

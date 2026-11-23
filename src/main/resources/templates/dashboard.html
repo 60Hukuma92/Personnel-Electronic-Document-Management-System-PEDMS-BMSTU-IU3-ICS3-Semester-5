@@ -7,33 +7,36 @@
 
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="container">
+<div class="container mb-5">
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 bg-white rounded-3 shadow-sm border">
         <div>
-            <h1 class="h3 mb-1" th:text="'Мой кабинет — ' + ${user.fullName}">Мой кабинет</h1>
+            <h1 class="h3 mb-1" th:text="'Личный кабинет — ' + ${user.fullName}">Мой кабинет</h1>
             <p class="text-muted mb-0"
                th:text="${user.position?.name ?: '—'} + ' · ' + ${user.department?.name ?: '—'}">
             </p>
         </div>
-        <span class="badge text-bg-secondary fs-6" th:text="${user.role.title}">Роль</span>
+        <span class="badge text-bg-primary fs-6 px-3 py-2" th:text="${user.role.title}">Роль</span>
     </div>
 
     <!-- Быстрые действия -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white"><h2 class="h6 mb-0">Быстрые действия</h2></div>
+    <div class="card mb-4">
+        <div class="card-header d-flex align-items-center">
+            <i class="bi bi-lightning-charge me-2 text-warning fs-5"></i>
+            <h2 class="h6 mb-0">Быстрые действия</h2>
+        </div>
         <div class="card-body">
             <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-primary btn-sm" th:href="@{/documents/create}">
+                <a class="btn btn-primary" th:href="@{/documents/create}">
                     <i class="bi bi-file-earmark-plus me-1"></i>Создать заявление на отпуск
                 </a>
-                <a class="btn btn-outline-primary btn-sm" th:href="@{/documents/create}">
-                    <i class="bi bi-file-earmark me-1"></i>Создать документ
+                <a class="btn btn-outline-primary" th:href="@{/documents/create}">
+                    <i class="bi bi-file-earmark-text me-1"></i>Создать документ
                 </a>
-                <a class="btn btn-outline-secondary btn-sm" th:href="@{/documents}">
+                <a class="btn btn-outline-secondary" th:href="@{/documents}">
                     <i class="bi bi-folder2-open me-1"></i>Мои документы
                 </a>
-                <a class="btn btn-outline-secondary btn-sm" th:href="@{/acquaintance}">
+                <a class="btn btn-outline-secondary" th:href="@{/acquaintance}">
                     <i class="bi bi-journal-check me-1"></i>Требуют ознакомления
                 </a>
             </div>
@@ -42,61 +45,66 @@
 
     <!-- Показатели -->
     <div class="row g-3 mb-4">
-        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/documents}">
-            <div class="card shadow-sm h-100">
+        <a class="col-6 col-lg-3 text-decoration-none" th:href="@{/documents}">
+            <div class="card stat-card h-100">
                 <div class="card-body">
-                    <h3 class="h6 text-muted">Мои документы</h3>
-                    <p class="display-6 mb-0" th:text="${summary.myDocuments}">0</p>
+                    <div class="stat-icon"><i class="bi bi-files"></i></div>
+                    <h3 class="h6 text-muted mb-1">Мои документы</h3>
+                    <p class="display-6 fw-bold text-dark mb-0" th:text="${summary.myDocuments}">0</p>
                 </div>
             </div>
         </a>
-        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/approval}">
-            <div class="card shadow-sm h-100">
+        <a class="col-6 col-lg-3 text-decoration-none" th:href="@{/approval}">
+            <div class="card stat-card h-100" style="border-left-color: #f59e0b;">
                 <div class="card-body">
-                    <h3 class="h6 text-muted">Ожидают моего решения</h3>
-                    <p class="display-6 mb-0" th:text="${summary.awaitingMe}">0</p>
+                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="bi bi-clock-history"></i></div>
+                    <h3 class="h6 text-muted mb-1">Ожидают моего решения</h3>
+                    <p class="display-6 fw-bold text-dark mb-0" th:text="${summary.awaitingMe}">0</p>
                 </div>
             </div>
         </a>
-        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/acquaintance}">
-            <div class="card shadow-sm h-100">
+        <a class="col-6 col-lg-3 text-decoration-none" th:href="@{/acquaintance}">
+            <div class="card stat-card h-100" style="border-left-color: #84cc16;">
                 <div class="card-body">
-                    <h3 class="h6 text-muted">Требуют ознакомления</h3>
-                    <p class="display-6 mb-0" th:text="${summary.acquaintanceRequired}">0</p>
+                    <div class="stat-icon" style="background: #f7fee7; color: #65a30d;"><i class="bi bi-check2-square"></i></div>
+                    <h3 class="h6 text-muted mb-1">Требуют ознакомления</h3>
+                    <p class="display-6 fw-bold text-dark mb-0" th:text="${summary.acquaintanceRequired}">0</p>
                 </div>
             </div>
         </a>
-        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/notifications}">
-            <div class="card shadow-sm h-100">
+        <a class="col-6 col-lg-3 text-decoration-none" th:href="@{/notifications}">
+            <div class="card stat-card h-100" style="border-left-color: #3b82f6;">
                 <div class="card-body">
-                    <h3 class="h6 text-muted">Непрочитанные уведомления</h3>
-                    <p class="display-6 mb-0" th:text="${summary.unreadNotifications}">0</p>
+                    <div class="stat-icon" style="background: #eff6ff; color: #2563eb;"><i class="bi bi-bell"></i></div>
+                    <h3 class="h6 text-muted mb-1">Непрочитанные</h3>
+                    <p class="display-6 fw-bold text-dark mb-0" th:text="${summary.unreadNotifications}">0</p>
                 </div>
             </div>
         </a>
     </div>
 
     <!-- Уведомления -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h2 class="h6 mb-0">Последние уведомления</h2>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h6 mb-0"><i class="bi bi-bell me-2"></i>Последние уведомления</h2>
             <a class="btn btn-sm btn-outline-secondary" th:href="@{/notifications}">Все уведомления</a>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <ul class="list-group list-group-flush" th:if="${not #lists.isEmpty(notifications)}">
-                <li class="list-group-item d-flex justify-content-between align-items-start"
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3"
                     th:each="n : ${notifications}">
                     <div>
-                        <span th:text="${n.body}">Текст уведомления</span>
-                        <small class="text-muted d-block"
+                        <div class="fw-medium text-dark" th:text="${n.body}">Текст уведомления</div>
+                        <small class="text-muted d-block mt-1"
                                th:text="${#temporals.format(n.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
                     </div>
                     <span class="badge text-bg-primary ms-2" th:if="${n.isUnread}">новое</span>
                 </li>
             </ul>
-            <p class="text-muted mb-0" th:if="${#lists.isEmpty(notifications)}">
+            <div class="text-muted text-center py-4" th:if="${#lists.isEmpty(notifications)}">
+                <i class="bi bi-inbox fs-3 d-block mb-1 text-muted"></i>
                 Уведомлений пока нет.
-            </p>
+            </div>
         </div>
     </div>
 

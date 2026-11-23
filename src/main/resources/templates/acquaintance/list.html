@@ -3,32 +3,52 @@
 <head th:replace="~{fragments/layout :: head('Ознакомление')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<main class="container">
+<main class="container mb-5">
     <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Ознакомление'} })}"></div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Листы ознакомления</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Листы ознакомления</h1>
+            <p class="text-muted mb-0">Контроль ознакомления сотрудников с локальными нормативными актами</p>
+        </div>
         <a class="btn btn-primary" th:if="${currentUser != null and (currentUser.role.name() == 'HR' or currentUser.role.name() == 'ADMIN')}"
-           th:href="@{/acquaintance/create}">Создать лист</a>
+           th:href="@{/acquaintance/create}">
+            <i class="bi bi-plus-lg me-1"></i>Создать лист
+        </a>
     </div>
     <div th:replace="~{fragments/messages :: messages}"></div>
-    <div class="alert alert-info" th:if="${#lists.isEmpty(sheets)}">Листов ознакомления пока нет.</div>
-    <div class="table-responsive" th:unless="${#lists.isEmpty(sheets)}">
-        <table class="table table-hover align-middle">
-            <thead><tr><th>Документ</th><th>Аудитория</th><th>Срок</th><th>Прогресс</th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="sheet : ${sheets}">
-                <td th:text="${sheet.document.title}">ЛНА</td>
-                <td th:text="${sheet.audienceType.title}">Вся организация</td>
-                <td th:text="${sheet.deadline ?: '—'}">—</td>
-                <td th:text="${sheet.acknowledgedCount + ' / ' + sheet.totalExpected + ' (' + sheet.percentComplete + '%)'}">0 / 0</td>
-                <td class="text-end">
-                    <a class="btn btn-sm btn-outline-primary" th:href="@{/acquaintance/{id}(id=${sheet.id})}">Открыть</a>
-                    <a class="btn btn-sm btn-primary" th:if="${currentUser != null and sheet.document != null and sheet.status.name() == 'ACTIVE'}"
-                       th:href="@{/acquaintance/{id}/read(id=${sheet.id})}">Ознакомиться</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+
+    <div class="alert alert-info d-flex align-items-center mb-3" th:if="${#lists.isEmpty(sheets)}">
+        <i class="bi bi-info-circle-fill fs-5 me-2"></i>Листов ознакомления пока нет.
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(sheets)}">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Документ</th><th>Аудитория</th><th>Срок</th><th>Прогресс</th><th class="text-end">Действия</th></tr></thead>
+                    <tbody>
+                    <tr th:each="sheet : ${sheets}">
+                        <td class="fw-bold text-dark" th:text="${sheet.document.title}">ЛНА</td>
+                        <td><span class="badge text-bg-primary" th:text="${sheet.audienceType.title}">Вся организация</span></td>
+                        <td class="text-muted" th:text="${sheet.deadline ?: '—'}">—</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar" th:style="'width:' + ${sheet.percentComplete} + '%'"></div>
+                                </div>
+                                <span class="badge text-bg-info" th:text="${sheet.acknowledgedCount + ' / ' + sheet.totalExpected + ' (' + sheet.percentComplete + '%)'}">0 / 0</span>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary me-1" th:href="@{/acquaintance/{id}(id=${sheet.id})}"><i class="bi bi-folder2-open me-1"></i>Открыть</a>
+                            <a class="btn btn-sm btn-lime" th:if="${currentUser != null and sheet.document != null and sheet.status.name() == 'ACTIVE'}"
+                               th:href="@{/acquaintance/{id}/read(id=${sheet.id})}"><i class="bi bi-journal-check me-1"></i>Ознакомиться</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </main>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

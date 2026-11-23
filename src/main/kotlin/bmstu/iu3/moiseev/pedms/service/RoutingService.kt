@@ -230,11 +230,25 @@ class RoutingService(
             next.status = StepStatus.IN_PROGRESS
             routeStepRepository.save(next)
         } else {
-            document.status = DocStatus.APPROVED
+            document.status = if (current.action == StepAction.SIGN) {
+                current.signatureData = mapOf(
+                    "signedAt" to now.toString(),
+                    "signedByUserId" to (current.user?.id ?: 0),
+                    "signedBy" to (current.user?.fullName ?: "")
+                )
+                routeStepRepository.save(current)
+                DocStatus.SIGNED
+            } else {
+                DocStatus.APPROVED
+            }
             document.updatedAt = now
             documentRepository.save(document)
         }
-        audit(document, AuditAction.APPROVED, comment?.trim())
+        audit(
+            document,
+            if (document.status == DocStatus.SIGNED) AuditAction.SIGNED else AuditAction.APPROVED,
+            comment?.trim()
+        )
         return document
     }
 

@@ -6,9 +6,14 @@
 <main class="container">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">Документы</h1>
-    <a class="btn btn-primary" th:href="@{/documents/create}">
-      <i class="bi bi-plus-lg me-1"></i>Создать документ
-    </a>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary" th:href="@{/documents/orders}">
+        <i class="bi bi-files me-1"></i>Формирование приказов
+      </a>
+      <a class="btn btn-primary" th:href="@{/documents/create}">
+        <i class="bi bi-plus-lg me-1"></i>Создать документ
+      </a>
+    </div>
   </div>
 
   <form class="row g-2 mb-3" th:action="@{/documents}" method="get">

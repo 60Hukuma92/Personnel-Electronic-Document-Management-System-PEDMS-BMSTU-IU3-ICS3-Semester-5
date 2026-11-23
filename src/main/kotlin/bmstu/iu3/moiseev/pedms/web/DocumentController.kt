@@ -7,6 +7,7 @@ import bmstu.iu3.moiseev.pedms.dto.DocumentValidationException
 import bmstu.iu3.moiseev.pedms.entity.DocumentEntity
 import bmstu.iu3.moiseev.pedms.repository.DocTypeRepository
 import bmstu.iu3.moiseev.pedms.service.DocumentService
+import bmstu.iu3.moiseev.pedms.service.OrderFormationService
 import bmstu.iu3.moiseev.pedms.service.RouteDraft
 import bmstu.iu3.moiseev.pedms.service.RoutingService
 import org.springframework.format.annotation.DateTimeFormat
@@ -27,7 +28,8 @@ import java.time.LocalDate
 class DocumentController(
     private val documentService: DocumentService,
     private val docTypeRepository: DocTypeRepository,
-    private val routingService: RoutingService
+    private val routingService: RoutingService,
+    private val orderFormationService: OrderFormationService
 ) {
     @GetMapping
     fun list(
@@ -48,6 +50,65 @@ class DocumentController(
         model.addAttribute("from", from)
         model.addAttribute("to", to)
         return "documents/list"
+    }
+
+    @GetMapping("/orders")
+    fun orders(model: Model): String {
+        model.addAttribute("applications", orderFormationService.availableApplications())
+        model.addAttribute("orderReport", null)
+        return "documents/orders"
+    }
+
+    @PostMapping("/orders/from/{applicationId}")
+    fun createOrder(
+        @PathVariable applicationId: Int,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        val order = orderFormationService.createFromApplication(applicationId)
+        redirectAttributes.addFlashAttribute("successMessage", "Проект приказа сформирован из согласованного заявления")
+        "redirect:/documents/${order.id}"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/orders"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/orders"
+    }
+
+    @PostMapping("/orders/batch")
+    fun batchCreateOrders(
+        @RequestParam("file") file: MultipartFile,
+        @RequestParam(required = false, defaultValue = "false") submitToRoute: Boolean,
+        model: Model
+    ): String = try {
+        val report = orderFormationService.importOrders(file, submitToRoute)
+        model.addAttribute("applications", orderFormationService.availableApplications())
+        model.addAttribute("orderReport", report)
+        "documents/orders"
+    } catch (ex: IllegalArgumentException) {
+        model.addAttribute("applications", orderFormationService.availableApplications())
+        model.addAttribute("orderReport", null)
+        model.addAttribute("errorMessage", ex.message)
+        "documents/orders"
+    }
+
+    @PostMapping("/orders/batch-sign")
+    fun batchSignOrders(
+        @RequestParam documentIds: List<Int>,
+        redirectAttributes: RedirectAttributes
+    ): String = try {
+        val documents = orderFormationService.submitBatch(documentIds)
+        redirectAttributes.addFlashAttribute(
+            "successMessage",
+            "На единый маршрут подписания отправлено приказов: ${documents.size}"
+        )
+        "redirect:/documents/orders"
+    } catch (ex: IllegalArgumentException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/orders"
+    } catch (ex: IllegalStateException) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.message)
+        "redirect:/documents/orders"
     }
 
     @GetMapping("/new", "/create")

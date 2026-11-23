@@ -391,6 +391,10 @@ CREATE TABLE IF NOT EXISTS user_settings (
     CONSTRAINT ck_user_settings_language CHECK (language IN ('ru', 'en'))
 );
 
+-- Upgrade existing databases: CREATE TABLE IF NOT EXISTS does not add new columns.
+ALTER TABLE user_settings
+    ADD COLUMN IF NOT EXISTS notif_event_types VARCHAR(1000) NOT NULL DEFAULT '';
+
 COMMENT ON TABLE  user_settings IS 'Персональные настройки пользователя. Связь с app_users — 1 : 1';
 
 CREATE TABLE IF NOT EXISTS delegation (

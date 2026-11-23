@@ -17,6 +17,20 @@
 
 BEGIN;
 
+-- Проверка миграции настроек уведомлений
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'user_settings'
+          AND column_name = 'notif_event_types'
+    ) THEN
+        RAISE EXCEPTION 'ТЕСТ НЕ ПРОЙДЕН: отсутствует user_settings.notif_event_types';
+    END IF;
+END $$;
+
 -- ---------------------------------------------------------------------
 -- A. ПОДГОТОВКА ТЕСТОВЫХ ДАННЫХ
 -- ---------------------------------------------------------------------

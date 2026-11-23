@@ -42,14 +42,14 @@
 
     <!-- Показатели -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-lg-3">
+        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/documents}">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h3 class="h6 text-muted">Мои документы</h3>
                     <p class="display-6 mb-0" th:text="${summary.myDocuments}">0</p>
                 </div>
             </div>
-        </div>
+        </a>
         <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/approval}">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
@@ -58,22 +58,22 @@
                 </div>
             </div>
         </a>
-        <div class="col-6 col-lg-3">
+        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/acquaintance}">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h3 class="h6 text-muted">Требуют ознакомления</h3>
                     <p class="display-6 mb-0" th:text="${summary.acquaintanceRequired}">0</p>
                 </div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
+        </a>
+        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/notifications}">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h3 class="h6 text-muted">Непрочитанные уведомления</h3>
                     <p class="display-6 mb-0" th:text="${summary.unreadNotifications}">0</p>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Уведомления -->

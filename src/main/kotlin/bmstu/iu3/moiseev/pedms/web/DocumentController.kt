@@ -46,7 +46,7 @@ class DocumentController(
         return "documents/list"
     }
 
-    @GetMapping("/new")
+    @GetMapping("/new", "/create")
     fun newForm(
         @RequestParam(required = false) typeId: Int?,
         model: Model

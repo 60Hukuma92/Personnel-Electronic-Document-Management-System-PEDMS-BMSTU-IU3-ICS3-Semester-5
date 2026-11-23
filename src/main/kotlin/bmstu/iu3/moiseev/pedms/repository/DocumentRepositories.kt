@@ -38,6 +38,18 @@ interface DocumentRepository : JpaRepository<DocumentEntity, Int> {
 
     fun findByNumber(number: String): DocumentEntity?
 
+    @Query(
+        """
+        select distinct d from DocumentEntity d
+        join RouteStepEntity s on s.document.id = d.id
+        where s.user.id = :userId
+          and s.status = 'IN_PROGRESS'
+          and d.status = 'IN_APPROVAL'
+        order by d.updatedAt desc
+        """
+    )
+    fun findAwaitingDecisionByUserId(userId: Int): List<DocumentEntity>
+
     /**
      * Документы, в которых пользователь является автором, участником
      * маршрута или адресатом листа ознакомления (TR040 — разграничение

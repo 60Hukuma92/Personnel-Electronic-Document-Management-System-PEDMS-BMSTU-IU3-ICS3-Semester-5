@@ -66,15 +66,7 @@ class DocumentService(
 
     fun findAwaitingDecision(): List<DocumentEntity> {
         val user = currentUserService.requireCurrentUser()
-        return documentRepository.findAccessibleTo(user.id ?: 0)
-            .filter { document ->
-                document.status == bmstu.iu3.moiseev.pedms.domain.DocStatus.IN_APPROVAL &&
-                    routeStepRepository.findAllByDocumentIdAndUserIdOrderByStepOrderAsc(
-                        document.id ?: 0,
-                        user.id ?: 0
-                    ).any { it.status == bmstu.iu3.moiseev.pedms.domain.StepStatus.IN_PROGRESS }
-            }
-            .sortedByDescending { it.updatedAt }
+        return documentRepository.findAwaitingDecisionByUserId(user.id ?: 0)
     }
 
     @Transactional

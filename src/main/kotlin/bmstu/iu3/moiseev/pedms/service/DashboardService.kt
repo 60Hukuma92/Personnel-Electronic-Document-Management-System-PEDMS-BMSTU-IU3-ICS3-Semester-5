@@ -38,7 +38,7 @@ class DashboardService(
             onApproval = documentRepository.findAllByStatusOrderByCreatedAtDesc(
                 bmstu.iu3.moiseev.pedms.domain.DocStatus.IN_APPROVAL
             ).size.toLong(),
-            awaitingMe = routeStepRepository.findPendingFor(userId).size.toLong(),
+            awaitingMe = documentRepository.findAwaitingDecisionByUserId(userId).size.toLong(),
             acquaintanceRequired = acquaintanceMarkRepository
                 .findAllByUserIdAndStatus(userId, bmstu.iu3.moiseev.pedms.domain.MarkStatus.PENDING)
                 .size.toLong(),

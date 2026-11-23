@@ -62,6 +62,37 @@ class DocumentServiceTests {
     }
 
     @Test
+    fun `my documents returns only documents authored by current user`() {
+        val ownDocument = DocumentEntity(
+            id = 21,
+            type = type,
+            author = user,
+            title = "Моё заявление",
+            status = DocStatus.DRAFT
+        )
+        val foreignAuthor = AppUserEntity(
+            id = 8,
+            fullName = "Другой Сотрудник",
+            email = "other@pedms.ru"
+        )
+        val foreignDocument = DocumentEntity(
+            id = 22,
+            type = type,
+            author = foreignAuthor,
+            title = "Чужое заявление",
+            status = DocStatus.DRAFT
+        )
+        `when`(documentRepository.findAllByAuthorIdOrderByCreatedAtDesc(7))
+            .thenReturn(listOf(ownDocument))
+        `when`(documentRepository.findAccessibleTo(7))
+            .thenReturn(listOf(ownDocument, foreignDocument))
+
+        val result = documentService.findList(null, null, null, null, null)
+
+        assertEquals(listOf(ownDocument), result)
+    }
+
+    @Test
     fun `create rejects missing required template field`() {
         val exception = assertThrows(DocumentValidationException::class.java) {
             documentService.create(

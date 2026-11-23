@@ -36,8 +36,11 @@ class UserSettingsEntity(
     @Column(name = "notif_email_enabled", nullable = false)
     var notifEmailEnabled: Boolean = false,
 
-    /** Список событий через запятую; пустое значение означает все события. */
-    @Column(name = "notif_event_types", nullable = false, length = 1000)
+    /**
+     * Список событий через запятую; пустое значение означает все события.
+     * Поле добавляется миграцией sql/03_migrate_notification_settings.sql.
+     */
+    @Transient
     var notifEventTypes: String = "",
 
     /** Тема оформления: light, dark, auto. */

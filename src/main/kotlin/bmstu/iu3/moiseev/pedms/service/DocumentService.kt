@@ -66,6 +66,11 @@ class DocumentService(
         return document.takeIf { isAccessible }
     }
 
+    fun findAwaitingDecision(): List<DocumentEntity> {
+        val user = currentUserService.requireCurrentUser()
+        return documentRepository.findAwaitingDecisionByUserId(user.id ?: 0)
+    }
+
     @Transactional
     fun create(form: DocumentForm): DocumentEntity {
         val user = currentUserService.requireCurrentUser()

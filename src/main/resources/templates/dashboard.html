@@ -50,14 +50,14 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <a class="col-6 col-lg-3 text-decoration-none text-dark" th:href="@{/approval}">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h3 class="h6 text-muted">Ожидают моего решения</h3>
                     <p class="display-6 mb-0" th:text="${summary.awaitingMe}">0</p>
                 </div>
             </div>
-        </div>
+        </a>
         <div class="col-6 col-lg-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body">

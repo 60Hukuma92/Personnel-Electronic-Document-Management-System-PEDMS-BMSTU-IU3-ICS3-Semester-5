@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Документ')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container">
+  <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Документы', (editing ? 'Редактирование' : 'Новый документ')} })}"></div>
+  <h1 class="h3 mb-3" th:text="${editing ? 'Редактирование документа' : 'Новый документ'}"></h1>
+
+  <form th:action="${editing ? '/documents/' + documentId + '/edit' : '/documents'}" method="post" th:object="${form}">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Вид документа</label>
+        <select class="form-select" th:field="*{typeId}" onchange="if(this.value) location.href='/documents/create?typeId='+this.value">
+          <option value="">Выберите вид</option>
+          <option th:each="item : ${types}" th:value="${item.id}" th:text="${item.name}"></option>
+        </select>
+        <div class="text-danger small" th:text="${fieldErrors['typeId']}"></div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Название</label>
+        <input class="form-control" th:field="*{title}" th:classappend="${fieldErrors['title'] != null} ? 'is-invalid'">
+        <div class="invalid-feedback" th:text="${fieldErrors['title']}"></div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1" th:if="${type != null}">
+      <div th:each="field : ${type.templateJson['fields']}"
+           th:class="${field['halfWidth']} ? 'col-md-6' : 'col-md-12'">
+        <label class="form-label" th:text="${field['label']}"></label>
+        <input th:if="${field['type'] == 'text'}" class="form-control"
+               th:name="|fields[${field['key']}]|" th:value="${form.fields[field['key']]}"
+               th:classappend="${fieldErrors[field['key']] != null} ? 'is-invalid'">
+        <input th:if="${field['type'] == 'date'}" type="date" class="form-control"
+               th:name="|fields[${field['key']}]|" th:value="${form.fields[field['key']]}"
+               th:classappend="${fieldErrors[field['key']] != null} ? 'is-invalid'">
+        <textarea th:if="${field['type'] == 'textarea'}" class="form-control" rows="4"
+                  th:name="|fields[${field['key']}]|" th:text="${form.fields[field['key']]}"
+                  th:classappend="${fieldErrors[field['key']] != null} ? 'is-invalid'"></textarea>
+        <select th:if="${field['type'] == 'select'}" class="form-select"
+                th:name="|fields[${field['key']}]|"
+                th:classappend="${fieldErrors[field['key']] != null} ? 'is-invalid'">
+          <option value="">Выберите значение</option>
+          <option th:each="option : ${field['options']}" th:value="${option['value']}"
+                  th:text="${option['label']}"
+                  th:selected="${form.fields[field['key']] == option['value']}"></option>
+        </select>
+        <div class="invalid-feedback" th:text="${fieldErrors[field['key']]}"></div>
+      </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Сохранить черновик</button>
+      <a class="btn btn-outline-secondary" th:href="@{/documents}">Отмена</a>
+    </div>
+  </form>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

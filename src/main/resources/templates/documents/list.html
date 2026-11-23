@@ -3,9 +3,11 @@
 <head th:replace="~{fragments/layout :: head('Документы')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<main class="container">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Документы</h1>
+<main class="container mb-5">
+  <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Документы'} })}"></div>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Реестр документов</h1>
     <div class="d-flex gap-2">
       <a class="btn btn-outline-primary" th:href="@{/documents/orders}">
         <i class="bi bi-files me-1"></i>Формирование приказов
@@ -16,45 +18,81 @@
     </div>
   </div>
 
-  <form class="row g-2 mb-3" th:action="@{/documents}" method="get">
-    <div class="col-md-3">
-      <input class="form-control" name="text" th:value="${text}" placeholder="Номер или название">
+  <div class="card mb-4">
+    <div class="card-header d-flex align-items-center">
+      <i class="bi bi-funnel me-2 text-primary"></i>
+      <h2 class="h6 mb-0">Фильтры реестра</h2>
     </div>
-    <div class="col-md-2">
-      <select class="form-select" name="typeId">
-        <option value="">Все виды</option>
-        <option th:each="type : ${types}" th:value="${type.id}" th:text="${type.name}"
-                th:selected="${selectedTypeId == type.id}"></option>
-      </select>
+    <div class="card-body">
+      <form class="row g-2" th:action="@{/documents}" method="get">
+        <div class="col-md-3">
+          <label class="form-label small text-muted mb-1">Поиск по тексту</label>
+          <input class="form-control" name="text" th:value="${text}" placeholder="Номер или название">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-muted mb-1">Вид документа</label>
+          <select class="form-select" name="typeId">
+            <option value="">Все виды</option>
+            <option th:each="type : ${types}" th:value="${type.id}" th:text="${type.name}"
+                    th:selected="${selectedTypeId == type.id}"></option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-muted mb-1">Статус</label>
+          <select class="form-select" name="status">
+            <option value="">Все статусы</option>
+            <option th:each="item : ${statuses}" th:value="${item.name}" th:text="${item.title}"
+                    th:selected="${selectedStatus != null and selectedStatus.name == item.name}"></option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-muted mb-1">Дата с</label>
+          <input class="form-control" type="date" name="from" th:value="${from}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small text-muted mb-1">Дата по</label>
+          <input class="form-control" type="date" name="to" th:value="${to}">
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+      </form>
     </div>
-    <div class="col-md-2">
-      <select class="form-select" name="status">
-        <option value="">Все статусы</option>
-        <option th:each="item : ${statuses}" th:value="${item.name}" th:text="${item.title}"
-                th:selected="${selectedStatus != null and selectedStatus.name == item.name}"></option>
-      </select>
-    </div>
-    <div class="col-md-2"><input class="form-control" type="date" name="from" th:value="${from}"></div>
-    <div class="col-md-2"><input class="form-control" type="date" name="to" th:value="${to}"></div>
-    <div class="col-md-1"><button class="btn btn-outline-secondary w-100" type="submit">Найти</button></div>
-  </form>
+  </div>
 
-  <div class="table-responsive">
-    <table class="table table-hover align-middle">
-      <thead><tr><th>Номер</th><th>Название</th><th>Вид</th><th>Статус</th><th>Обновлён</th></tr></thead>
-      <tbody>
-      <tr th:if="${documents.empty}">
-        <td colspan="5" class="text-muted text-center py-4">Документы не найдены</td>
-      </tr>
-      <tr th:each="document : ${documents}">
-        <td><a th:href="@{/documents/{id}(id=${document.id})}" th:text="${document.number ?: 'без номера'}"></a></td>
-        <td th:text="${document.title}"></td>
-        <td th:text="${document.type?.name}"></td>
-        <td><span class="badge text-bg-secondary" th:text="${document.status.title}"></span></td>
-        <td th:text="${#temporals.format(document.updatedAt, 'dd.MM.yyyy HH:mm')}"></td>
-      </tr>
-      </tbody>
-    </table>
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr><th>Номер</th><th>Название</th><th>Вид</th><th>Статус</th><th>Обновлён</th></tr>
+          </thead>
+          <tbody>
+          <tr th:if="${documents.empty}">
+            <td colspan="5" class="text-muted text-center py-5">
+              <i class="bi bi-folder-x fs-2 d-block mb-1"></i>
+              Документы не найдены
+            </td>
+          </tr>
+          <tr th:each="document : ${documents}">
+            <td>
+              <a class="fw-bold" th:href="@{/documents/{id}(id=${document.id})}" th:text="${document.number ?: 'без номера'}"></a>
+            </td>
+            <td class="fw-medium" th:text="${document.title}"></td>
+            <td th:text="${document.type?.name}"></td>
+            <td>
+              <span class="badge"
+                    th:classappend="${document.status.name() == 'APPROVED' or document.status.name() == 'SIGNED' or document.status.name() == 'ARCHIVED'} ? 'text-bg-success' :
+                                   (${document.status.name() == 'IN_APPROVAL'} ? 'text-bg-warning' :
+                                   (${document.status.name() == 'REJECTED' or document.status.name() == 'CANCELLED'} ? 'text-bg-danger' : 'text-bg-secondary'))"
+                    th:text="${document.status.title}"></span>
+            </td>
+            <td class="text-muted small" th:text="${#temporals.format(document.updatedAt, 'dd.MM.yyyy HH:mm')}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </main>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

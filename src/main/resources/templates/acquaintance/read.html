@@ -3,25 +3,39 @@
 <head th:replace="~{fragments/layout :: head('Ознакомление с документом')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-<main class="container">
+<main class="container mb-5">
     <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Ознакомление', 'Подтверждение'} })}"></div>
     <div th:replace="~{fragments/messages :: messages}"></div>
-    <h1 th:text="${sheet.document.title}">Документ</h1>
-    <p>Ознакомьтесь с документом до <strong th:text="${sheet.deadline ?: 'указанного срока'}">срока</strong>.</p>
-    <div class="alert alert-warning">
-        Учебный прототип: код подтверждения сгенерирован приложением и показывается вместо SMS.
-        <strong class="ms-2" th:text="${confirmationCode}">000000</strong>
-    </div>
-    <form th:action="@{/acquaintance/{id}/acknowledge(id=${sheet.id})}" method="post">
-        <input type="hidden" name="expectedCode" th:value="${confirmationCode}">
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="read" required>
-            <label class="form-check-label" for="read">Я ознакомился с документом и подтверждаю это действие.</label>
+
+    <div class="card col-lg-8 mx-auto">
+        <div class="card-body p-4">
+            <h1 class="h3 text-dark fw-bold mb-2" th:text="${sheet.document.title}">Документ</h1>
+            <p class="text-muted mb-4">Ознакомьтесь с документом до <strong class="text-dark" th:text="${sheet.deadline ?: 'указанного срока'}">срока</strong>.</p>
+
+            <div class="alert alert-warning d-flex align-items-center mb-4">
+                <i class="bi bi-shield-lock fs-4 me-3 text-warning"></i>
+                <div>
+                    <div>Учебный прототип: код подтверждения сгенерирован системой:</div>
+                    <strong class="fs-4 text-dark font-monospace" th:text="${confirmationCode}">000000</strong>
+                </div>
+            </div>
+
+            <form th:action="@{/acquaintance/{id}/acknowledge(id=${sheet.id})}" method="post">
+                <input type="hidden" name="expectedCode" th:value="${confirmationCode}">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="read" required>
+                    <label class="form-check-label fw-medium" for="read">Я ознакомился с документом и подтверждаю это действие.</label>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-medium" for="code">Код подтверждения</label>
+                    <input class="form-control form-control-lg font-monospace text-center fs-4" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="000000" required style="max-width: 200px; letter-spacing: 0.2em;">
+                </div>
+                <button class="btn btn-primary btn-lg w-100" type="submit" th:disabled="${mark.status.name() == 'ACKNOWLEDGED'}">
+                    <i class="bi bi-check2-circle me-1"></i>Подтвердить ознакомление
+                </button>
+            </form>
         </div>
-        <label class="form-label" for="code">Код подтверждения</label>
-        <input class="form-control mb-3" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" required>
-        <button class="btn btn-primary" type="submit" th:disabled="${mark.status.name() == 'ACKNOWLEDGED'}">Подтвердить ознакомление</button>
-    </form>
+    </div>
 </main>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>

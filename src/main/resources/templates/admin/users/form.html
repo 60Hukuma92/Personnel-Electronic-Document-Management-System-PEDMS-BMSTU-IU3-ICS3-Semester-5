@@ -7,38 +7,29 @@
 
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="container">
+<div class="container mb-5">
 
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Мой кабинет</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/admin/users}">Учётные записи</a></li>
-                <li class="breadcrumb-item active"
-                    th:text="${editing ? 'Изменение сведений' : 'Создание учётной записи'}">Раздел</li>
-            </ol>
-        </nav>
-    </div>
+    <div th:replace="~{fragments/layout :: breadcrumbs(${ {'Администрирование','Учётные записи', (editing ? 'Изменение сведений' : 'Создание')} })}"></div>
 
     <h1 class="h3 mb-4"
         th:text="${editing ? 'Изменение сведений об учётной записи' : 'Создание учётной записи'}">
         Учётная запись
     </h1>
 
-    <div class="alert alert-danger" th:if="${fieldErrors != null and !fieldErrors.isEmpty()}">
-        <i class="bi bi-exclamation-triangle me-1"></i>Проверьте правильность заполнения полей формы.
+    <div class="alert alert-danger d-flex align-items-center mb-3" th:if="${fieldErrors != null and !fieldErrors.isEmpty()}">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>Проверьте правильность заполнения полей формы.
     </div>
 
     <form method="post" th:action="${editing} ? @{'/admin/users/' + ${userId} + '/edit'} : @{/admin/users/new}"
           th:object="${form}" class="row g-4" novalidate>
         <div class="col-12 col-lg-8">
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white"><h2 class="h6 mb-0">Основные сведения</h2></div>
+            <div class="card mb-4">
+                <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-person me-2"></i>Основные сведения</h2></div>
                 <div class="card-body">
 
                     <div class="mb-3">
-                        <label for="fullName" class="form-label">ФИО <span class="text-danger">*</span></label>
+                        <label for="fullName" class="form-label fw-medium">ФИО <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="fullName" th:field="*{fullName}"
                                th:classappend="${fieldErrors != null and fieldErrors.containsKey('fullName')} ? 'is-invalid'">
                         <div class="invalid-feedback"
@@ -48,7 +39,7 @@
 
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label for="email" class="form-label">Электронная почта (логин) <span class="text-danger">*</span></label>
+                            <label for="email" class="form-label fw-medium">Email (логин) <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" id="email" th:field="*{email}"
                                    th:classappend="${fieldErrors != null and fieldErrors.containsKey('email')} ? 'is-invalid'">
                             <div class="invalid-feedback"
@@ -57,7 +48,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="personnelNumber" class="form-label">Табельный номер</label>
+                            <label for="personnelNumber" class="form-label fw-medium">Табельный номер</label>
                             <input type="text" class="form-control" id="personnelNumber" th:field="*{personnelNumber}"
                                    placeholder="ИУ3-00001"
                                    th:classappend="${fieldErrors != null and fieldErrors.containsKey('personnelNumber')} ? 'is-invalid'">
@@ -67,7 +58,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="inn" class="form-label">ИНН</label>
+                            <label for="inn" class="form-label fw-medium">ИНН</label>
                             <input type="text" class="form-control" id="inn" th:field="*{inn}"
                                    placeholder="500100732259" maxlength="12"
                                    th:classappend="${fieldErrors != null and fieldErrors.containsKey('inn')} ? 'is-invalid'">
@@ -77,7 +68,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="snils" class="form-label">СНИЛС</label>
+                            <label for="snils" class="form-label fw-medium">СНИЛС</label>
                             <input type="text" class="form-control" id="snils" th:field="*{snils}"
                                    placeholder="001-001-001 00"
                                    th:classappend="${fieldErrors != null and fieldErrors.containsKey('snils')} ? 'is-invalid'">
@@ -87,7 +78,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="phone" class="form-label">Телефон</label>
+                            <label for="phone" class="form-label fw-medium">Телефон</label>
                             <input type="text" class="form-control" id="phone" th:field="*{phone}"
                                    placeholder="+7 916 123-45-67"
                                    th:classappend="${fieldErrors != null and fieldErrors.containsKey('phone')} ? 'is-invalid'">
@@ -97,7 +88,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="dateOfBirth" class="form-label">Дата рождения</label>
+                            <label for="dateOfBirth" class="form-label fw-medium">Дата рождения</label>
                             <input type="text" class="form-control" id="dateOfBirth" th:field="*{dateOfBirth}"
                                    placeholder="ДД.ММ.ГГГГ"
                                    th:classappend="${fieldErrors != null and fieldErrors.containsKey('dateOfBirth')} ? 'is-invalid'">
@@ -109,12 +100,12 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white"><h2 class="h6 mb-0">Работа и доступ</h2></div>
+            <div class="card mb-4">
+                <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-briefcase me-2"></i>Работа и доступ</h2></div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label for="departmentId" class="form-label">Подразделение <span class="text-danger">*</span></label>
+                            <label for="departmentId" class="form-label fw-medium">Подразделение <span class="text-danger">*</span></label>
                             <select class="form-select" id="departmentId" th:field="*{departmentId}"
                                     th:classappend="${fieldErrors != null and fieldErrors.containsKey('departmentId')} ? 'is-invalid'">
                                 <option value="">— выберите подразделение —</option>
@@ -126,7 +117,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="positionId" class="form-label">Должность <span class="text-danger">*</span></label>
+                            <label for="positionId" class="form-label fw-medium">Должность <span class="text-danger">*</span></label>
                             <select class="form-select" id="positionId" th:field="*{positionId}"
                                     th:classappend="${fieldErrors != null and fieldErrors.containsKey('positionId')} ? 'is-invalid'">
                                 <option value="">— выберите должность —</option>
@@ -138,7 +129,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="role" class="form-label">Роль <span class="text-danger">*</span></label>
+                            <label for="role" class="form-label fw-medium">Роль <span class="text-danger">*</span></label>
                             <select class="form-select" id="role" th:field="*{role}"
                                     th:classappend="${fieldErrors != null and fieldErrors.containsKey('role')} ? 'is-invalid'">
                                 <option th:each="r : ${roles}" th:value="${r.name}" th:text="${r.title}"></option>
@@ -149,7 +140,7 @@
                         </div>
 
                         <div class="col-12 col-md-6" th:if="${editing}">
-                            <label for="status" class="form-label">Статус</label>
+                            <label for="status" class="form-label fw-medium">Статус</label>
                             <select class="form-select" id="status" th:field="*{status}">
                                 <option th:each="s : ${statuses}" th:value="${s.name}" th:text="${s.title}"
                                         th:disabled="${s.name() == 'DELETED'}"></option>
@@ -160,21 +151,21 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-4" th:if="${!editing}">
-                <div class="card-header bg-white"><h2 class="h6 mb-0">Пароль</h2></div>
+            <div class="card mb-4" th:if="${!editing}">
+                <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-key me-2"></i>Пароль</h2></div>
                 <div class="card-body">
-                    <label for="password" class="form-label">Пароль</label>
+                    <label for="password" class="form-label fw-medium">Пароль</label>
                     <input type="text" class="form-control" id="password" th:field="*{password}"
                            placeholder="Оставьте пустым — система сформирует временный пароль"
                            th:classappend="${fieldErrors != null and fieldErrors.containsKey('password')} ? 'is-invalid'">
                     <div class="invalid-feedback"
                          th:if="${fieldErrors != null and fieldErrors.containsKey('password')}"
                          th:text="${fieldErrors.get('password')}"></div>
-                    <div class="form-text">Пароль хранится в базе только в виде BCrypt-хэша (TR030).</div>
+                    <div class="form-text">Пароль хранится в базе только в виде BCrypt-хэша.</div>
                 </div>
             </div>
 
-            <div class="d-flex gap-2 mb-5">
+            <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-lg me-1"></i>
                     <span th:text="${editing ? 'Сохранить изменения' : 'Создать учётную запись'}">Сохранить</span>
@@ -186,17 +177,17 @@
 
         <!-- Подсказка -->
         <div class="col-12 col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white"><h2 class="h6 mb-0">Подсказки</h2></div>
+            <div class="card">
+                <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>Подсказки</h2></div>
                 <div class="card-body small text-muted">
                     <p class="mb-2">Проверка данных выполняется по правилам доменов базы данных:</p>
                     <ul class="ps-3 mb-2">
                         <li>ИНН — 12 цифр;</li>
                         <li>СНИЛС — 11 цифр или формат XXX-XXX-XXX XX;</li>
                         <li>телефон — маска +7 XXX XXX-XX-XX;</li>
-                        <li>табельный номер — до 8 букв или цифр, через дефис — ещё до 8 символов.</li>
+                        <li>табельный номер — до 8 букв/цифр через дефис.</li>
                     </ul>
-                    <p class="mb-0">Адрес электронной почты используется как логин для входа в систему (UC030).</p>
+                    <p class="mb-0">Email используется как логин для входа в систему.</p>
                 </div>
             </div>
         </div>

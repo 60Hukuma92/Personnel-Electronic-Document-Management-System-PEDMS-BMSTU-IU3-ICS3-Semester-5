@@ -39,7 +39,7 @@ class DocumentService(
         val fromDateTime = from?.atStartOfDay()
         val toDateTime = to?.plusDays(1)?.atStartOfDay()?.minusNanos(1)
 
-        return documentRepository.findAccessibleTo(user.id ?: 0)
+        return documentRepository.findAllByAuthorIdOrderByCreatedAtDesc(user.id ?: 0)
             .asSequence()
             .filter { typeId == null || it.type?.id == typeId }
             .filter { status == null || it.status == status }

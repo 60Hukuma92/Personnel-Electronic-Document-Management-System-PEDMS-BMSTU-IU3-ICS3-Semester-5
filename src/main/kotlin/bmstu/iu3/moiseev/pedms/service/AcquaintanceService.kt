@@ -9,6 +9,7 @@ import bmstu.iu3.moiseev.pedms.dto.AcquaintanceSheetForm
 import bmstu.iu3.moiseev.pedms.entity.AcquaintanceMarkEntity
 import bmstu.iu3.moiseev.pedms.entity.AcquaintanceSheetEntity
 import bmstu.iu3.moiseev.pedms.entity.AuditLogEntity
+import bmstu.iu3.moiseev.pedms.entity.DocumentEntity
 import bmstu.iu3.moiseev.pedms.repository.AcquaintanceMarkRepository
 import bmstu.iu3.moiseev.pedms.repository.AcquaintanceSheetRepository
 import bmstu.iu3.moiseev.pedms.repository.AppUserRepository
@@ -94,6 +95,55 @@ class AcquaintanceService(
                 user = creator,
                 action = AuditAction.SHEET_CREATED,
                 comment = "Создан лист ознакомления для аудитории «${form.audienceType.title}»",
+                changedFields = mapOf("sheetId" to sheet.id, "totalExpected" to users.size)
+            )
+        )
+        return sheet
+    }
+
+    @Transactional
+    fun createAutoSheetForDocument(document: DocumentEntity): AcquaintanceSheetEntity? {
+        val type = document.type ?: return null
+        if (!type.requiresAcquaintance && type.category != bmstu.iu3.moiseev.pedms.domain.DocCategory.LNA) {
+            return null
+        }
+        val docId = document.id ?: return null
+        val existing = sheetRepository.findAllByDocumentId(docId).firstOrNull()
+        if (existing != null) {
+            return existing
+        }
+
+        val users = userRepository.findAllByStatusOrderByFullNameAsc(bmstu.iu3.moiseev.pedms.domain.UserStatus.ACTIVE)
+        if (users.isEmpty()) return null
+
+        val deadline = LocalDate.now().plusDays(14)
+        val creator = document.author ?: users.first()
+        val sheet = sheetRepository.save(
+            AcquaintanceSheetEntity(
+                document = document,
+                createdBy = creator,
+                audienceType = AudienceType.ALL,
+                audienceRef = null,
+                deadline = deadline,
+                totalExpected = users.size,
+                acknowledgedCount = 0
+            )
+        )
+        markRepository.saveAll(users.map { user ->
+            notificationService.notify(
+                user,
+                bmstu.iu3.moiseev.pedms.domain.NotificationEvent.ACQUAINTANCE_REQUIRED,
+                document,
+                "Требуется ознакомиться с документом «${document.title}» до $deadline"
+            )
+            AcquaintanceMarkEntity(sheet = sheet, user = user)
+        })
+        auditLogRepository.save(
+            AuditLogEntity(
+                document = document,
+                user = creator,
+                action = AuditAction.SHEET_CREATED,
+                comment = "Автоматически создан лист ознакомления при вступлении ЛНА в силу",
                 changedFields = mapOf("sheetId" to sheet.id, "totalExpected" to users.size)
             )
         )

@@ -35,7 +35,8 @@ class RoutingService(
     private val appUserRepository: AppUserRepository,
     private val auditLogRepository: AuditLogRepository,
     private val currentUserService: CurrentUserService,
-    private val notificationService: NotificationService
+    private val notificationService: NotificationService,
+    private val acquaintanceService: AcquaintanceService
 ) {
 
     fun findRoute(documentId: Int): List<RouteStepEntity> =
@@ -203,11 +204,17 @@ class RoutingService(
         val original = current.delegatedFrom ?: current.user
         current.delegatedFrom = original
         current.user = target
-        current.status = StepStatus.PENDING
+        current.status = StepStatus.IN_PROGRESS
         current.comment = comment?.trim()?.takeIf { it.isNotEmpty() }
         routeStepRepository.save(current)
         document.updatedAt = LocalDateTime.now()
         documentRepository.save(document)
+        notificationService.notify(
+            target,
+            bmstu.iu3.moiseev.pedms.domain.NotificationEvent.DOCUMENT_ARRIVED,
+            document,
+            "Вам делегировано согласование документа «${document.title}»"
+        )
         audit(
             document,
             AuditAction.DELEGATED,
@@ -270,6 +277,11 @@ class RoutingService(
             }
             document.updatedAt = now
             documentRepository.save(document)
+
+            if (document.type?.requiresAcquaintance == true || document.type?.category == bmstu.iu3.moiseev.pedms.domain.DocCategory.LNA) {
+                acquaintanceService.createAutoSheetForDocument(document)
+            }
+
             document.author?.let {
                 notificationService.notify(
                     it,

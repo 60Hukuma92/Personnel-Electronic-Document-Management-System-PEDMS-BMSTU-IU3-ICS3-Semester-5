@@ -108,4 +108,21 @@ class AcquaintanceServiceTests {
             service.acknowledge(8, "123456", "123456")
         }
     }
+
+    @Test
+    fun `createAutoSheetForDocument creates sheet and marks for LNA document`() {
+        `when`(sheets.findAllByDocumentId(10)).thenReturn(emptyList())
+
+        val result = service.createAutoSheetForDocument(document)
+
+        org.junit.jupiter.api.Assertions.assertNotNull(result)
+        assertEquals(document, result?.document)
+        assertEquals(1, result?.totalExpected)
+        org.mockito.Mockito.verify(sheets).save(anyNonNull())
+        org.mockito.Mockito.verify(notifications).notify(anyNonNull(), anyNonNull(), anyNonNull(), anyNonNull())
+    }
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> anyNonNull(): T = any() ?: null as T
+

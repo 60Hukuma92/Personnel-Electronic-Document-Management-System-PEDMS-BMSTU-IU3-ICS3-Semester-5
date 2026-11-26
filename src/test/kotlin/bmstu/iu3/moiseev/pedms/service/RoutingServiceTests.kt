@@ -35,6 +35,7 @@ class RoutingServiceTests {
     private lateinit var auditLogRepository: AuditLogRepository
     private lateinit var currentUserService: CurrentUserService
     private lateinit var notificationService: NotificationService
+    private lateinit var acquaintanceService: AcquaintanceService
     private lateinit var routingService: RoutingService
     private lateinit var author: AppUserEntity
     private lateinit var approver: AppUserEntity
@@ -49,6 +50,7 @@ class RoutingServiceTests {
         auditLogRepository = mock(AuditLogRepository::class.java)
         currentUserService = mock(CurrentUserService::class.java)
         notificationService = mock(NotificationService::class.java)
+        acquaintanceService = mock(AcquaintanceService::class.java)
         routingService = RoutingService(
             documentRepository,
             routeRuleRepository,
@@ -56,7 +58,8 @@ class RoutingServiceTests {
             appUserRepository,
             auditLogRepository,
             currentUserService,
-            notificationService
+            notificationService,
+            acquaintanceService
         )
 
         val department = DepartmentEntity(id = 5, name = "Отдел разработки", code = "DEV", path = "/1/5/")
@@ -126,14 +129,14 @@ class RoutingServiceTests {
         `when`(routeStepRepository.findAllByDocumentIdOrderByStepOrderAsc(100)).thenReturn(emptyList())
         `when`(routeRuleRepository.findMatching(3, 5, 1)).thenReturn(listOf(rule))
         `when`(appUserRepository.findActiveByDepartmentAndPosition(5, 2)).thenReturn(listOf(approver))
-        `when`(routeStepRepository.save(any(RouteStepEntity::class.java))).thenAnswer { it.arguments[0] }
+        `when`(routeStepRepository.save(anyNonNull())).thenAnswer { it.arguments[0] }
         `when`(documentRepository.save(document)).thenReturn(document)
 
         val result = routingService.submit(100)
 
         assertEquals(DocStatus.IN_APPROVAL, result.status)
         verify(routeStepRepository).deleteAllByDocumentId(100)
-        verify(routeStepRepository).save(any(RouteStepEntity::class.java))
+        verify(routeStepRepository).save(anyNonNull())
     }
 
     @Test
@@ -158,7 +161,7 @@ class RoutingServiceTests {
         `when`(routeStepRepository.findAllByDocumentIdOrderByStepOrderAsc(100))
             .thenReturn(listOf(first, second))
         `when`(currentUserService.requireCurrentUser()).thenReturn(approver)
-        `when`(routeStepRepository.save(any(RouteStepEntity::class.java))).thenAnswer { it.arguments[0] }
+        `when`(routeStepRepository.save(anyNonNull())).thenAnswer { it.arguments[0] }
 
         val result = routingService.approve(100, "Согласовано")
 
@@ -188,12 +191,47 @@ class RoutingServiceTests {
         `when`(routeStepRepository.findAllByDocumentIdOrderByStepOrderAsc(100))
             .thenReturn(listOf(current))
         `when`(appUserRepository.findById(30)).thenReturn(Optional.of(target))
-        `when`(routeStepRepository.save(any(RouteStepEntity::class.java))).thenAnswer { it.arguments[0] }
+        `when`(routeStepRepository.save(anyNonNull())).thenAnswer { it.arguments[0] }
 
         routingService.delegate(100, 30, "В отпуске")
 
         assertEquals(target, current.user)
         assertEquals(approver, current.delegatedFrom)
-        assertEquals(StepStatus.PENDING, current.status)
+        assertEquals(StepStatus.IN_PROGRESS, current.status)
+    }
+
+    @Test
+    fun `approve completion triggers auto acquaintance sheet for LNA document`() {
+        document.status = DocStatus.IN_APPROVAL
+        document.type = DocTypeEntity(
+            id = 1,
+            code = "LNA_TEST",
+            name = "Правила внутреннего распорядка",
+            category = DocCategory.LNA,
+            requiresAcquaintance = true
+        )
+        val current = RouteStepEntity(
+            id = 1,
+            document = document,
+            user = approver,
+            stepOrder = 1,
+            action = StepAction.APPROVE,
+            status = StepStatus.IN_PROGRESS
+        )
+        `when`(currentUserService.requireCurrentUser()).thenReturn(approver)
+        `when`(documentRepository.findById(100)).thenReturn(Optional.of(document))
+        `when`(routeStepRepository.findAllByDocumentIdOrderByStepOrderAsc(100))
+            .thenReturn(listOf(current))
+        `when`(routeStepRepository.save(anyNonNull())).thenAnswer { it.arguments[0] }
+        `when`(documentRepository.save(anyNonNull())).thenAnswer { it.arguments[0] }
+
+        val result = routingService.approve(100, "Согласовано")
+
+        assertEquals(DocStatus.APPROVED, result.status)
+        verify(acquaintanceService).createAutoSheetForDocument(document)
     }
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> anyNonNull(): T = any() ?: null as T
+

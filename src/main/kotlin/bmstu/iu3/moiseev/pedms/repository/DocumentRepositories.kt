@@ -62,7 +62,10 @@ interface DocumentRepository : JpaRepository<DocumentEntity, Int> {
         where d.author.id = :userId
            or b.author.id = :userId
            or exists (
-                select s from RouteStepEntity s where s.document.id = d.id and s.user.id = :userId
+                select s from RouteStepEntity s where s.document.id = d.id and (s.user.id = :userId or s.delegatedFrom.id = :userId)
+           )
+           or exists (
+                select m from AcquaintanceMarkEntity m join m.sheet sh where sh.document.id = d.id and m.user.id = :userId
            )
         order by d.createdAt desc
         """

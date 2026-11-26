@@ -9,8 +9,15 @@
 
     <div class="card col-lg-8 mx-auto">
         <div class="card-body p-4">
-            <h1 class="h3 text-dark fw-bold mb-2" th:text="${sheet.document.title}">Документ</h1>
-            <p class="text-muted mb-4">Ознакомьтесь с документом до <strong class="text-dark" th:text="${sheet.deadline ?: 'указанного срока'}">срока</strong>.</p>
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <div>
+                    <h1 class="h3 text-dark fw-bold mb-1" th:text="${sheet.document.title}">Документ</h1>
+                    <p class="text-muted mb-0">Срок ознакомления: <strong class="text-dark" th:text="${sheet.deadline ?: 'не задан'}">срок</strong></p>
+                </div>
+                <a class="btn btn-outline-primary" th:href="@{/documents/{id}(id=${sheet.document.id})}" target="_blank">
+                    <i class="bi bi-file-earmark-text me-1"></i>Просмотреть документ
+                </a>
+            </div>
 
             <div class="alert alert-warning d-flex align-items-center mb-4">
                 <i class="bi bi-shield-lock fs-4 me-3 text-warning"></i>
@@ -30,9 +37,14 @@
                     <label class="form-label fw-medium" for="code">Код подтверждения</label>
                     <input class="form-control form-control-lg font-monospace text-center fs-4" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" placeholder="000000" required style="max-width: 200px; letter-spacing: 0.2em;">
                 </div>
-                <button class="btn btn-primary btn-lg w-100" type="submit" th:disabled="${mark.status.name() == 'ACKNOWLEDGED'}">
-                    <i class="bi bi-check2-circle me-1"></i>Подтвердить ознакомление
-                </button>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-outline-secondary btn-lg flex-grow-1" th:href="@{/documents/{id}(id=${sheet.document.id})}" target="_blank">
+                        <i class="bi bi-eye me-1"></i>Читать полностью
+                    </a>
+                    <button class="btn btn-primary btn-lg flex-grow-2" type="submit" th:disabled="${mark.status.name() == 'ACKNOWLEDGED'}">
+                        <i class="bi bi-check2-circle me-1"></i>Подтвердить ознакомление
+                    </button>
+                </div>
             </form>
         </div>
     </div>
